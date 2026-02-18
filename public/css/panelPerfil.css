@@ -1,0 +1,108 @@
+/* ---------------------------------------------------
+   CARDS GENERALES
+--------------------------------------------------- */
+.bg-guinda-adminlte {
+    background-color: #611232 !important;
+    color: #fff !important;
+}
+.profile-card {
+    background: #ffffff;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid #e7e7e7;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    height: 100%;
+}
+
+.profile-card:hover {
+    box-shadow: 0 7px 18px rgba(0,0,0,0.20);
+}
+
+/* FORZAR MISMO TAMAÑO */
+.equal-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* ENCABEZADOS */
+.profile-card-header {
+    padding: 15px 22px;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: white;
+    display: flex;
+    align-items: center;
+    letter-spacing: .6px;
+}
+
+.bg-guinda {
+    background: #611232 !important;
+}
+
+.bg-amarillo {
+    background: #ffc107 !important;
+    color: #383838 !important;
+}
+
+/* CUERPO DE LA CARD */
+.profile-card-body {
+    padding: 26px 26px;
+    background-color: #fafafa;
+    flex: 1; /* HACE QUE AMBAS CARDS MIDAN LO MISMO */
+}
+
+/* INPUTS */
+.profile-card-body form label {
+    font-weight: 600;
+}
+
+.profile-card-body form input,
+.profile-card-body form select,
+.profile-card-body form textarea {
+    border-radius: 10px !important;
+    border: 1px solid #bfbfbf !important;
+}
+
+/* ---------------------------------------------------
+   ESTILOS DE BOTONES
+--------------------------------------------------- */
+
+.btn-guinda {
+    background-color: #611232 !important;
+    color: #fff !important;
+    font-weight: 600;
+    padding: 9px 22px !important;
+    border-radius: 10px !important;
+    border: none !important;
+    transition: .25s ease;
+}
+
+.btn-guinda:hover {
+    background-color: #4c0f29 !important;
+    transform: translateY(-1px);
+}
+
+.btn-secondary-guinda {
+    background-color: #e6e6e6 !important;
+    color: #333 !important;
+    font-weight: 600;
+    padding: 10px 22px !important;
+    border-radius: 10px;
+}
+
+.btn-link {
+    color: #611232 !important;
+    font-weight: 600;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .profile-card-body {
+        padding: 20px;
+    }
+    .profile-card-header {
+        font-size: 1rem;
+        padding: 12px 16px;
+    }
+}

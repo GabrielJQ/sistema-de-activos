@@ -1,0 +1,190 @@
+/* ----------------- Tipografía ----------------- */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans&display=swap');
+
+.text {
+    font-family: 'Noto Sans', sans-serif;
+    margin: 0;
+    padding: 0;
+    font-size: larger;
+}
+/* ----------------- Títulos principales de vista ----------------- */
+.view-title {
+    font-family: 'Noto Sans', sans-serif; /* tipografía consistente */
+    font-weight: 700;                     /* resalta la jerarquía */
+    font-size: 2rem;                      /* tamaño destacado, legible */
+    line-height: 1.2;                     /* buena legibilidad */
+    margin-bottom: 1rem;                  /* separación del contenido */
+    letter-spacing: 0.25px;               /* sutil mejora de claridad */
+    color: #000;                           /* color neutro elegante */
+}
+
+/* Adaptación para pantallas pequeñas */
+@media (max-width: 576px) {
+    .view-title {
+        font-size: 1.6rem;               /* ligeramente más pequeño en móviles */
+        text-align: center;               /* centrado en pantallas pequeñas */
+        margin-bottom: 0.75rem;
+    }
+}
+
+/* ----------------- Sidebar Base ----------------- */
+.main-sidebar  {
+    background-color: #611232 !important; /* guinda principal */
+    border-top-right-radius: 0;           /* esquina superior derecha recta */
+    border-bottom-right-radius: 20px;     /* esquina inferior derecha curva */
+    box-shadow: 4px 0 15px rgba(0,0,0,0.25);
+
+    /* Altura adaptable */
+    min-height: 100vh;    /* mínimo igual a la pantalla */
+    height: auto;         /* crece si el contenido es más grande */
+    width: 250px;         /* ancho estándar */
+    overflow-y: auto;     /* scroll si hay demasiados items */
+    overflow-x: hidden;
+    scrollbar-width: thin; 
+    scrollbar-color: #9b2247 #611232;
+}
+
+/* Sidebar colapsado */
+.sidebar-collapse .main-sidebar {
+    width: 80px;
+}
+
+
+/* ----------------- Contenido ----------------- */
+.layout-fixed .wrapper .content-wrapper {
+    margin-left: 250px; /* coincide con ancho del sidebar */
+    min-height: 100vh;
+    background-color: #d9d9d9; /* gris claro */
+    color: #000000; /* texto negro */
+    padding: 2rem;
+    transition: margin-left 0.3s ease;
+    font-family: 'Noto Sans', sans-serif; /* asegura tipografía uniforme */
+}
+
+.sidebar-collapse .content-wrapper {
+    margin-left: 80px;
+}
+
+
+/* ----------------- Links Sidebar ----------------- */
+.nav-sidebar > .nav-item > .nav-link {
+    color: #ffffff !important;
+    background-color: transparent !important;
+    font-size: 1.05rem;
+    padding: 14px 20px !important;
+    border-radius: 10px;
+    margin: 5px 10px;
+    transition: all 0.25s ease-in-out;
+    display: flex;
+    align-items: center;
+}
+
+/* Íconos */
+.nav-sidebar .nav-link i {
+    margin-right: 10px;
+    font-size: 1rem;
+    opacity: 0.85;
+    transition: opacity 0.2s ease;
+}
+
+.nav-sidebar .nav-link:hover i {
+    opacity: 1;
+}
+
+/* Hover */
+.nav-sidebar > .nav-item > .nav-link:hover {
+    background-color: #9b2247 !important;
+    transform: translateX(4px);
+    box-shadow: inset 4px 0 0 #f1c6d5;
+}
+
+/* Activo */
+.nav-sidebar > .nav-item > .nav-link.active {
+    background: linear-gradient(90deg, #611232 0%, #811a3d 100%);
+    color: #ffffff !important;
+    font-weight: bold;
+    border-left: 4px solid #f1c6d5;
+    box-shadow: inset 4px 0 0 #f1c6d5;
+}
+
+/* ----------------- Submenús ----------------- */
+.nav-sidebar .menu-open > .nav-treeview > .nav-item > .nav-link {
+    background-color: #7b1a38 !important;
+    color: #ffffff !important;
+    font-size: 0.95rem;
+    padding: 10px 35px !important;
+    border-radius: 8px;
+    margin: 3px 15px;
+    transition: background-color 0.2s ease;
+}
+
+.nav-sidebar .menu-open > .nav-treeview > .nav-item > .nav-link:hover {
+    background-color: #8f1f42 !important;
+}
+
+/* ----------------- Headers de sección ----------------- */
+.nav-header {
+    color: #f1c6d5;
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+    margin: 15px 15px 8px;
+    text-transform: uppercase;
+    font-weight: bold;
+    opacity: 0.8;
+}
+
+/* ----------------- Scrollbar personalizada ----------------- */
+.main-sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.main-sidebar::-webkit-scrollbar-track {
+    background: #611232;
+}
+
+.main-sidebar::-webkit-scrollbar-thumb {
+    background-color: #9b2247;
+    border-radius: 3px;
+}
+
+/* ===== User Menu Guinda ===== */
+.bg-guinda-adminlte {
+    background-color: #611232 !important;
+    color: #fff !important;
+}
+.brand-link,
+.brand-link:hover,
+.brand-link:focus {
+    text-decoration: none !important;
+}
+
+.brand-text {
+    font-size: 1rem;
+    letter-spacing: 0.35px;
+    font-weight: 600;
+}
+
+/* ----------------- Responsivo ----------------- */
+@media (max-width: 768px) {
+    .main-sidebar {
+        width: 200px;
+    }
+    .sidebar-collapse .main-sidebar {
+        width: 0;
+    }
+    .layout-fixed .wrapper .content-wrapper {
+        margin-left: 200px;
+    }
+    .sidebar-collapse .content-wrapper {
+        margin-left: 0;
+    }
+
+    .main-sidebar {
+        transition: width 0.3s ease, min-height 0.3s ease;
+    }
+
+    .nav-sidebar > .nav-item > .nav-link,
+    .nav-sidebar .menu-open > .nav-treeview > .nav-item > .nav-link {
+        transition: all 0.25s ease-in-out;
+    }
+}

@@ -1,0 +1,311 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@100;400;700&display=swap');
+
+:root {
+    --guinda-start: #611232;
+    --guinda-end: #45081f;
+    --btn-contrast: #611232;
+    --btn-hover: #45081f;
+    --text-muted: #666;
+    --text-light: rgba(255,255,255,0.9);
+    --bg-light: #fff;
+    --error-color: #e74c3c;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Noto Sans', sans-serif;
+}
+
+html, body {
+    height: 100%;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: url('../images/fondo.png') no-repeat center center / cover;
+    opacity: 0.25;
+    z-index: -1;
+}
+
+.logo-white{
+    filter: brightness(0) invert(1);
+}
+
+.wrapper-flex {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.main-content {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 30px;
+}
+
+/* 🔝 Navbar */
+.login-navbar {
+    width: 100%;
+    background: var(--guinda-start);
+    padding: 20px 0;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.container-nav {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.container-nav img {
+    height: 50px;
+    object-fit: contain;
+}
+
+.logo {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+/* 🔚 Footer */
+.login-footer {
+    width: 100%;
+    text-align: center;
+    padding: 20px 0;
+    background: var(--guinda-start);
+    color: #fff;
+    font-size: 0.95rem;
+}
+
+/* 🟥 Login */
+.login-wrapper {
+    display: flex;
+    max-width: 1150px;
+    width: 100%;
+    min-height: 600px;
+    border-radius: 20px;
+    overflow: hidden;
+    background: linear-gradient(to right, var(--guinda-start), var(--guinda-end));
+    box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+    opacity: 0;
+    transform: translateY(30px);
+    animation: fadeIn 0.6s forwards;
+}
+
+@keyframes fadeIn {
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* 🧩 Panel izquierdo */
+.login-left {
+    flex: 2.5;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 70px 55px;
+    text-align: justify;
+}
+
+.login-left h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+.login-left p {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    margin-bottom: 35px;
+}
+
+.social-links a {
+    color: var(--text-light);
+    font-size: 1.6rem;
+    margin-right: 20px;
+    transition: 0.3s;
+}
+.social-links a:hover {
+    color: #ffcc00;
+    transform: translateY(-3px);
+}
+
+/* 🧾 Panel derecho */
+.login-right {
+    flex: 2.8;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 60px 30px;
+}
+
+.login-card {
+    width: 100%;
+    max-width: 680px;
+    background: #fff;
+    padding: 50px;
+    border-radius: 25px;
+    box-shadow: 0 15px 50px rgba(0,0,0,0.25);
+}
+
+/* 🔠 Título */
+.login-title {
+    font-size: 2.4rem;
+    font-weight: 800;
+    margin-bottom: 35px;
+    color: var(--guinda-start);
+    text-align: center;
+}
+
+/* ✏️ Inputs */
+.input-group {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 25px;
+}
+
+.input-group label {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--guinda-start);
+    margin-bottom: 8px;
+}
+
+.input-group .form-control {
+    height: 50px;
+    border-radius: 12px;
+    padding: 0 18px;
+    padding-right: 45px;
+    font-size: 1rem;
+    border: 2px solid #ccc;
+    transition: 0.3s;
+}
+
+.input-group .form-control:focus {
+    border-color: var(--guinda-start);
+    box-shadow: 0 0 10px rgba(97,18,50,0.25);
+}
+
+/* 👁️ Icono contraseña */
+#togglePassword {
+    position: absolute;
+    right: 15px;
+    top: calc(50% + 10px);
+    transform: translateY(-50%);
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+#togglePassword i {
+    color: #999;
+    font-size: 1.2rem;
+    transition: color 0.3s ease;
+}
+#togglePassword:hover i { color: var(--guinda-start); }
+
+.btn-primary {
+    width: 100%;
+    height: 50px;
+    background: var(--btn-contrast);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1.05rem;
+    transition: 0.3s;
+    margin-bottom: 15px;
+}
+.btn-primary:hover {
+    background: var(--btn-hover);
+    transform: scale(1.03);
+}
+
+/* 🔗 Contraseña olvidada */
+.lost-password {
+    margin-top: 10px;
+    font-size: 0.9rem;
+    text-align: right;
+}
+.lost-password a {
+    color: var(--text-muted);
+    text-decoration: none;
+}
+.lost-password a:hover {
+    color: var(--guinda-start);
+    text-decoration: underline;
+}
+
+/* 📱 Responsive total */
+@media (max-width: 992px) {
+    .login-wrapper {
+        flex-direction: column;
+        max-height: none;
+    }
+    .login-left, .login-right {
+        width: 100%;
+        text-align: center;
+        padding: 40px 25px;
+    }
+    .login-left h1 {
+        font-size: 2.4rem;
+    }
+    .login-left p {
+        font-size: 1rem;
+    }
+    .login-card {
+        padding: 40px 30px;
+    }
+}
+
+@media (max-width: 600px) {
+    .container-nav {
+        flex-direction: column;
+        gap: 5px;
+        text-align: center;
+    }
+    .container-nav img {
+        height: 45px;
+    }
+    .logo {
+        font-size: 1.3rem;
+        line-height: 1.4;
+    }
+    .login-left h1 {
+        font-size: 2rem;
+    }
+    .login-left p {
+        font-size: 0.95rem;
+        margin-bottom: 25px;
+    }
+    .login-card {
+        padding: 30px 20px;
+        box-shadow: none;
+    }
+    .login-title {
+        font-size: 2rem;
+    }
+    .btn-primary {
+        font-size: 1rem;
+    }
+    .social-links a {
+        font-size: 1.4rem;
+        margin-right: 15px;
+    }
+    .lost-password {
+        text-align: center;
+    }
+}
