@@ -26,6 +26,21 @@
         </div>
     </div>
 
+    {{-- Mensajes --}}
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show shadow-soft rounded-4 mb-3" role="alert">
+            <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
+            <button type="button" class="btn-close shadow-none" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show shadow-soft rounded-4 mb-3" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>{{ session('error') }}
+            <button type="button" class="btn-close shadow-none" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+
     {{-- ================= FILTROS ================= --}}
     @if(!hasrole(['super_admin']))
     <div class="card shadow-soft rounded-4 border-0 mb-4">

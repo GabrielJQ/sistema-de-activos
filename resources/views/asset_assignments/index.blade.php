@@ -45,12 +45,14 @@
             </a>
             @endif
 
+            @if(hasRole(['super_admin','admin','collaborator']))
             <button type="button" 
                 class="btn btn-guinda-outline px-3"
                 data-bs-toggle="modal" 
                 data-bs-target="#downloadModal">
                 <i class="fas fa-download me-1"></i> Descarga Masiva
             </button>
+            @endif
 
         </div>
     </div>

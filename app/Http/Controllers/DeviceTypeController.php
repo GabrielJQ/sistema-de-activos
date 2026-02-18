@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\DeviceType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Http\Requests\DeviceTypeRequest;
 
 class DeviceTypeController extends Controller
 {
@@ -12,10 +13,10 @@ class DeviceTypeController extends Controller
     {
         $deviceTypes = DeviceType::query()
             ->when($request->filled('search'), function ($q) use ($request) {
-                $search = $request->search;
-                $q->where('equipo', 'like', "%{$search}%")
-                  ->orWhere('descripcion', 'like', "%{$search}%");
-            })
+            $search = $request->search;
+            $q->where('equipo', 'like', "%{$search}%")
+                ->orWhere('descripcion', 'like', "%{$search}%");
+        })
             ->orderBy('equipo')
             ->paginate(6)
             ->withQueryString();
@@ -28,13 +29,10 @@ class DeviceTypeController extends Controller
         return view('device_types.create');
     }
 
-    public function store(Request $request)
+    public function store(DeviceTypeRequest $request)
     {
-        $data = $request->validate([
-            'equipo' => 'required|string|max:255',
-            'descripcion' => 'nullable|string',
-            'image' => 'nullable|image|max:2048',
-        ]);
+        // Validación automática con DeviceTypeRequest
+        $data = $request->validated();
 
         if ($request->hasFile('image')) {
             $file = $request->file('image');
@@ -54,13 +52,10 @@ class DeviceTypeController extends Controller
         return view('device_types.edit', compact('deviceType'));
     }
 
-    public function update(Request $request, DeviceType $deviceType)
+    public function update(DeviceTypeRequest $request, DeviceType $deviceType)
     {
-        $data = $request->validate([
-            'equipo' => 'required|string|max:255',
-            'descripcion' => 'nullable|string',
-            'image' => 'nullable|image|max:2048',
-        ]);
+        // Validación automática con DeviceTypeRequest
+        $data = $request->validated();
 
         if ($request->hasFile('image')) {
             if ($deviceType->image_path && file_exists(public_path($deviceType->image_path))) {

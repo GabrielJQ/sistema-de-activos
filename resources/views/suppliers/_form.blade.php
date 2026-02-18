@@ -2,6 +2,18 @@
     $isEdit = isset($supplier);
 @endphp
 
+@if ($errors->any())
+    <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+        <strong><i class="fas fa-exclamation-triangle me-2"></i> Por favor corrige los siguientes errores:</strong>
+        <ul class="mb-0 mt-2">
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+@endif
+
 {{-- Título de sección --}}
 <h6 class="section-title d-flex align-items-center gap-2">
     <i class="fas fa-building"></i> Información del Proveedor
@@ -24,10 +36,12 @@
                     <input type="text"
                            name="prvnombre"
                            id="prvnombre"
-                           class="form-control"
+                           class="form-control @error('prvnombre') is-invalid @enderror"
                            value="{{ old('prvnombre', $supplier->prvnombre ?? '') }}"
-                           placeholder="Ej. Proveedor XYZ"
-                           required>
+                           placeholder="Ej. Proveedor XYZ">
+                    @error('prvnombre')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
             </div>
 
@@ -41,9 +55,12 @@
                     <input type="text"
                            name="contrato"
                            id="contrato"
-                           class="form-control"
+                           class="form-control @error('contrato') is-invalid @enderror"
                            value="{{ old('contrato', $supplier->contrato ?? '') }}"
                            placeholder="Ej. CONTR-2024-01">
+                    @error('contrato')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
             </div>
 
@@ -57,9 +74,12 @@
                     <input type="text"
                            name="telefono"
                            id="telefono"
-                           class="form-control"
+                           class="form-control @error('telefono') is-invalid @enderror"
                            value="{{ old('telefono', $supplier->telefono ?? '') }}"
                            placeholder="Ej. 555-123-4567">
+                    @error('telefono')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
             </div>
 
@@ -73,9 +93,12 @@
                     <input type="url"
                            name="enlace"
                            id="enlace"
-                           class="form-control"
+                           class="form-control @error('enlace') is-invalid @enderror"
                            value="{{ old('enlace', $supplier->enlace ?? '') }}"
                            placeholder="https://www.proveedor.com">
+                    @error('enlace')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
             </div>
 
@@ -100,7 +123,10 @@
             {{-- Logo --}}
             <div class="col-12 col-md-6">
                 <label for="logo" class="form-label fw-semibold">Logo (opcional)</label>
-                <input type="file" name="logo" id="logo" class="form-control">
+                <input type="file" name="logo" id="logo" class="form-control @error('logo') is-invalid @enderror">
+                @error('logo')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
 
                 @if($isEdit && $supplier->logo)
                     <img src="{{ asset($supplier->logo) }}"
@@ -217,12 +243,37 @@
 {{-- JS para validación de logo --}}
 @push('js')
 <script>
-document.getElementById('logo')?.addEventListener('change', function(e) {
-    const allowedTypes = ['image/jpeg','image/png','image/jpg','image/gif','image/webp'];
-    const file = e.target.files[0];
-    if (file && !allowedTypes.includes(file.type)) {
-        alert('Solo se permiten imágenes (jpeg, png, jpg, gif, webp).');
-        e.target.value = ''; // limpiar input
+document.addEventListener('DOMContentLoaded', function() {
+    // Validacion imagen
+    document.getElementById('logo')?.addEventListener('change', function(e) {
+        const allowedTypes = ['image/jpeg','image/png','image/jpg','image/gif','image/webp'];
+        const file = e.target.files[0];
+        if (file && !allowedTypes.includes(file.type)) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Archivo no válido',
+                text: 'Solo se permiten imágenes (jpeg, png, jpg, gif, webp).',
+                confirmButtonColor: '#611232'
+            });
+            e.target.value = ''; // limpiar input
+        }
+    });
+
+    // Validacion required fields (solo nombre por ahora)
+    const form = document.querySelector('form');
+    if(form) {
+        form.addEventListener('submit', function(e) {
+            const prvnombre = document.getElementById('prvnombre');
+            if (prvnombre && !prvnombre.value.trim()) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Campos incompletos',
+                    html: 'El campo <b>Nombre del proveedor</b> es obligatorio.',
+                    confirmButtonColor: '#611232'
+                });
+            }
+        });
     }
 });
 </script>

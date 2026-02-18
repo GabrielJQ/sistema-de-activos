@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Http\Requests\SupplierRequest;
 
 
 class SupplierController extends Controller
@@ -16,11 +17,11 @@ class SupplierController extends Controller
 
         $suppliers = Supplier::query()
             ->when($search, function ($query, $search) {
-                $query->where('prvnombre', 'like', "%{$search}%")
-                      ->orWhere('contrato', 'like', "%{$search}%")
-                      ->orWhere('telefono', 'like', "%{$search}%")
-                      ->orWhere('enlace', 'like', "%{$search}%");
-            })
+            $query->where('prvnombre', 'like', "%{$search}%")
+                ->orWhere('contrato', 'like', "%{$search}%")
+                ->orWhere('telefono', 'like', "%{$search}%")
+                ->orWhere('enlace', 'like', "%{$search}%");
+        })
             ->orderBy('prvnombre')
             ->paginate(9)
             ->withQueryString();
@@ -45,20 +46,14 @@ class SupplierController extends Controller
     }
 
     // Almacenar nuevo proveedor
-    public function store(Request $request)
+    public function store(SupplierRequest $request)
     {
-        $data = $request->validate([
-            'prvnombre' => 'required|string|max:255',
-            'contrato'  => 'nullable|string|max:255',
-            'telefono'  => 'nullable|string|max:50',
-            'enlace'    => 'nullable|string|max:255',
-            'prvstatus' => 'boolean',
-            'logo'      => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048', // solo tipos permitidos
-        ]);
+        // Validación automática con SupplierRequest
+        $data = $request->validated();
 
 
         if ($request->hasFile('logo')) {
-            
+
             $data['logo_path'] = $request->file('logo')->store('suppliers', 'public');
         }
 
@@ -72,16 +67,10 @@ class SupplierController extends Controller
         return view('suppliers.edit', compact('supplier'));
     }
 
-    public function update(Request $request, Supplier $supplier)
+    public function update(SupplierRequest $request, Supplier $supplier)
     {
-        $data = $request->validate([
-            'prvnombre' => 'required|string|max:255',
-            'contrato'  => 'nullable|string|max:255',
-            'telefono'  => 'nullable|string|max:50',
-            'enlace'    => 'nullable|string|max:255',
-            'prvstatus' => 'boolean',
-            'logo'      => 'nullable|image|max:2048',
-        ]);
+        // Validación automática con SupplierRequest
+        $data = $request->validated();
 
         if ($request->hasFile('logo')) {
             // Borrar imagen anterior si existe

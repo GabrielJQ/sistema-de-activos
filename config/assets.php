@@ -53,7 +53,8 @@ return [
         'Sindicalizado',
         'Confianza',
         'Eventual',
-        'Honorarios'
+        'Honorarios',
+        'Otro'
     ],
 
     'department_types' => [

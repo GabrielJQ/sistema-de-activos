@@ -36,4 +36,34 @@ class EmployeeRequest extends FormRequest
             'status' => 'required|in:Activo,Inactivo',
         ];
     }
+
+    public function attributes(): array
+    {
+        return [
+            'department_id' => 'departamento',
+            'nombre' => 'nombre',
+            'apellido_pat' => 'apellido paterno',
+            'apellido_mat' => 'apellido materno',
+            'curp' => 'CURP',
+            'puesto' => 'puesto',
+            'tipo' => 'tipo de empleado',
+            'email' => 'correo electrónico',
+            'telefono' => 'teléfono',
+            'extension' => 'extensión',
+            'status' => 'estado',
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'required' => 'El campo :attribute es obligatorio.',
+            'string' => 'El campo :attribute debe ser texto.',
+            'max' => 'El campo :attribute no debe exceder los :max caracteres.',
+            'email' => 'El campo :attribute debe ser un correo electrónico válido.',
+            'in' => 'El :attribute seleccionado no es válido.',
+            'exists' => 'El :attribute seleccionado no existe.',
+            'unique' => 'El :attribute ya ha sido registrado.',
+        ];
+    }
 }

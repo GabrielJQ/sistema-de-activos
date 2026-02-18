@@ -29,9 +29,11 @@
                     </a>
                 @endif
 
-                <button class="btn btn-info btn-sm px-3" data-bs-toggle="modal" data-bs-target="#printModal">
-                    <i class="fas fa-print me-1"></i> Imprimir resguardo
-                </button>
+                @if(hasRole(['super_admin', 'admin']))
+                    <button class="btn btn-info btn-sm px-3" data-bs-toggle="modal" data-bs-target="#printModal">
+                        <i class="fas fa-print me-1"></i> Imprimir resguardo
+                    </button>
+                @endif
             </div>
         </div>
 

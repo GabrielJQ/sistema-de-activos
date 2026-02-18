@@ -2,6 +2,18 @@
     $isEdit = isset($department);
 @endphp
 
+@if ($errors->any())
+    <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+        <strong><i class="fas fa-exclamation-triangle me-2"></i> Por favor corrige los siguientes errores:</strong>
+        <ul class="mb-0 mt-2">
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+@endif
+
 <h6 class="section-title"><i class="fas fa-building me-2"></i> Información del Departamento</h6>
 
 <div class="row g-4">
@@ -10,9 +22,12 @@
         <label for="areacve" class="form-label fw-semibold">Clave del Departamento</label>
         <div class="input-group">
             <span class="input-group-text bg-light text-muted"><i class="fas fa-key"></i></span>
-            <input type="text" name="areacve" id="areacve" class="form-control"
+            <input type="text" name="areacve" id="areacve" class="form-control @error('areacve') is-invalid @enderror"
                    value="{{ old('areacve', $department->areacve ?? '') }}"
-                   placeholder="Ej. DEP-001" required>
+                   placeholder="Ej. DEP-001">
+            @error('areacve')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
         </div>
     </div>
 
@@ -21,9 +36,12 @@
         <label for="areanom" class="form-label fw-semibold">Nombre del Departamento</label>
         <div class="input-group">
             <span class="input-group-text bg-light text-muted"><i class="fas fa-building"></i></span>
-            <input type="text" name="areanom" id="areanom" class="form-control"
+            <input type="text" name="areanom" id="areanom" class="form-control @error('areanom') is-invalid @enderror"
                    value="{{ old('areanom', $department->areanom ?? '') }}"
-                   placeholder="Ej. Recursos Humanos" required>
+                   placeholder="Ej. Recursos Humanos">
+            @error('areanom')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
         </div>
     </div>
 
@@ -32,12 +50,15 @@
         <label for="tipo" class="form-label fw-semibold">Tipo</label>
         <div class="input-group">
             <span class="input-group-text bg-light text-muted"><i class="fas fa-layer-group"></i></span>
-            <select name="tipo" id="tipo" class="form-select">
+            <select name="tipo" id="tipo" class="form-select @error('tipo') is-invalid @enderror">
                 <option value="">-- Seleccione tipo --</option>
                 <option value="Oficina" {{ (old('tipo', $department->tipo ?? '') == 'Oficina') ? 'selected' : '' }}>🏢 Oficina</option>
                 <option value="Almacen" {{ (old('tipo', $department->tipo ?? '') == 'Almacen') ? 'selected' : '' }}>🏬 Almacén</option>
                 <option value="Otro" {{ (old('tipo', $department->tipo ?? '') == 'Otro') ? 'selected' : '' }}>📦 Otro</option>
             </select>
+            @error('tipo')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
         </div>
     </div>
 
@@ -46,7 +67,7 @@
         <label for="unit_id" class="form-label fw-semibold">Unidad</label>
         <div class="input-group">
             <span class="input-group-text bg-light text-muted"><i class="fas fa-sitemap"></i></span>
-            <select name="unit_id" id="unit_id" class="form-select">
+            <select name="unit_id" id="unit_id" class="form-select @error('unit_id') is-invalid @enderror">
                 <option value="">-- Seleccione unidad --</option>
                 @foreach($units as $unit)
                     <option value="{{ $unit->id }}" {{ (old('unit_id', $department->unit_id ?? '') == $unit->id) ? 'selected' : '' }}>
@@ -54,6 +75,9 @@
                     </option>
                 @endforeach
             </select>
+            @error('unit_id')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
         </div>
     </div>
 
@@ -211,13 +235,44 @@
 document.addEventListener('DOMContentLoaded', function() {
     const selectAddress = document.getElementById('address_id');
     const newAddressFields = document.getElementById('new-address-fields');
+    const form = document.querySelector('form');
 
     function toggleNewAddressFields() {
-        newAddressFields.style.display = (selectAddress.value === '') ? 'flex' : 'none';
+        if(selectAddress && newAddressFields) {
+            newAddressFields.style.display = (selectAddress.value === '') ? 'flex' : 'none';
+        }
     }
 
-    selectAddress.addEventListener('change', toggleNewAddressFields);
-    toggleNewAddressFields();
+    if(selectAddress) {
+        selectAddress.addEventListener('change', toggleNewAddressFields);
+        toggleNewAddressFields();
+    }
+
+    // Validación JS
+    if(form) {
+        form.addEventListener('submit', function(e) {
+            let missingFields = [];
+            const areacve = document.getElementById('areacve');
+            const areanom = document.getElementById('areanom');
+            const tipo = document.getElementById('tipo');
+            const unit_id = document.getElementById('unit_id');
+
+            if (areacve && !areacve.value.trim()) missingFields.push('Clave del Departamento');
+            if (areanom && !areanom.value.trim()) missingFields.push('Nombre del Departamento');
+            if (tipo && !tipo.value) missingFields.push('Tipo');
+            if (unit_id && !unit_id.value) missingFields.push('Unidad');
+
+            if (missingFields.length > 0) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Campos incompletos',
+                    html: 'Debes completar los siguientes campos:<br><b>' + missingFields.join('<br>') + '</b>',
+                    confirmButtonColor: '#611232'
+                });
+            }
+        });
+    }
 });
 </script>
 @endpush

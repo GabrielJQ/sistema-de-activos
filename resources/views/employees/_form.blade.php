@@ -1,4 +1,16 @@
 @csrf
+
+@if ($errors->any())
+    <div class="alert alert-danger alert-dismissible fade show m-3" role="alert">
+        <strong><i class="fas fa-exclamation-triangle me-2"></i> Por favor corrige los siguientes errores:</strong>
+        <ul class="mb-0 mt-2">
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+@endif
 <div class="d-flex justify-content-center align-items-start py-4">
     <div class="card border-0 shadow-lg rounded-4 w-100" style="max-width: 980px;">
 
@@ -78,7 +90,7 @@
                             </span>
                             <select name="tipo" id="tipo" class="form-select">
                                 <option value="">-- Seleccionar tipo --</option>
-                                @foreach(['Sindicalizado','Confianza','Eventual','Honorarios','Otro'] as $tipo)
+                                @foreach(config('assets.employee_types') as $tipo)
                                     <option value="{{ $tipo }}"
                                         {{ old('tipo', $employee->tipo ?? '') === $tipo ? 'selected' : '' }}>
                                         {{ $tipo }}
@@ -86,6 +98,9 @@
                                 @endforeach
                             </select>
                         </div>
+                        @error('tipo')
+                            <div class="text-danger mt-1 small">{{ $message }}</div>
+                        @enderror
                     </div>
 
                     <x-select-field
@@ -216,12 +231,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const expediente = document.getElementById('expediente');
     const nombre = document.getElementById('nombre');
     const departamento = document.getElementById('department_id');
+    const tipo = document.getElementById('tipo');
 
     form.addEventListener('submit', function(e) {
         let missingFields = [];
-        if (!expediente.value.trim()) missingFields.push('Expediente');
-        if (!nombre.value.trim()) missingFields.push('Nombre');
-        if (!departamento.value) missingFields.push('Departamento');
+        if (expediente && !expediente.value.trim()) missingFields.push('Expediente');
+        if (nombre && !nombre.value.trim()) missingFields.push('Nombre');
+        if (departamento && !departamento.value) missingFields.push('Departamento');
+        if (tipo && !tipo.value) missingFields.push('Tipo');
 
         if (missingFields.length > 0) {
             e.preventDefault();

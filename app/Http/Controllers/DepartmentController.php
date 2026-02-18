@@ -11,7 +11,7 @@ use App\Imports\StructureImport;
 use Maatwebsite\Excel\Facades\Excel;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Maatwebsite\Excel\Concerns\FromArray;
-
+use App\Http\Requests\DepartmentRequest;
 
 class DepartmentController extends Controller
 {
@@ -21,13 +21,13 @@ class DepartmentController extends Controller
         // Carga normal de departamentos
         $departments = Department::with(['address', 'unit.region'])
             ->when($request->filled('search'), function ($q) use ($request) {
-                $search = $request->search;
-                $q->where('areanom', 'like', "%{$search}%")
+            $search = $request->search;
+            $q->where('areanom', 'like', "%{$search}%")
                 ->orWhereHas('unit', fn($u) => $u->where('uninom', 'like', "%{$search}%"))
                 ->orWhereHas('address', fn($a) => $a->where('calle', 'like', "%{$search}%")
-                                                        ->orWhere('colonia', 'like', "%{$search}%")
-                                                        ->orWhere('cp', 'like', "%{$search}%"));
-            })
+            ->orWhere('colonia', 'like', "%{$search}%")
+            ->orWhere('cp', 'like', "%{$search}%"));
+        })
             ->when($request->filled('tipo'), fn($q) => $q->where('tipo', $request->tipo))
             ->orderBy('areanom')
             ->paginate(6)
@@ -37,26 +37,28 @@ class DepartmentController extends Controller
         $organizacion = \App\Models\Region::with([
             'units.departments' => fn($d) => $d->orderBy('areanom')
         ])
-        ->orderBy('regnom')
-        ->get();
-        
-        $estructura = $organizacion->map(function($region){
+            ->orderBy('regnom')
+            ->get();
+
+        $estructura = $organizacion->map(function ($region) {
             return [
-                'region' => strtolower($region->regnom),
-                'units'  => $region->units->map(function($unit){
+            'region' => strtolower($region->regnom),
+            'units' => $region->units->map(function ($unit) {
                     return [
-                        'name' => strtolower($unit->uninom),
-                        'label'=> $unit->uninom,
-                        'departments' => $unit->departments->map(function($dept){
+                    'name' => strtolower($unit->uninom),
+                    'label' => $unit->uninom,
+                    'departments' => $unit->departments->map(function ($dept) {
                             return [
-                                'name'  => strtolower($dept->areanom),
-                                'label' => $dept->areanom
+                            'name' => strtolower($dept->areanom),
+                            'label' => $dept->areanom
                             ];
-                        })
+                        }
+                        )
+                        ];
+                    }
+                    )
                     ];
-                })
-            ];
-        });
+                });
 
         return view('departments.index', [
             'departments' => $departments,
@@ -72,36 +74,31 @@ class DepartmentController extends Controller
         $units = Unit::all(); // Para elegir la unidad
         $addresses = Address::orderBy('municipio')->get();
 
-        return view('departments.create', compact('units','addresses'));
+        return view('departments.create', compact('units', 'addresses'));
     }
 
     // Almacenar un nuevo departamento
-    public function store(Request $request)
+    public function store(DepartmentRequest $request)
     {
-        $request->validate([
-            'areacve'    => 'required|integer|unique:departments,areacve',
-            'areanom'    => 'required|string|max:255',
-            'tipo'       => 'required|in:Oficina,Almacen,Otro',
-            'unit_id'    => 'required|exists:units,id',
-            'address_id' => 'nullable|exists:addresses,id',
-        ]);
+        // La validación ya se hizo automáticamente en DepartmentRequest
 
         if (!$request->address_id) {
-            $address = Address::create($request->only(['calle','colonia','cp','municipio','ciudad','estado']));
+            $address = Address::create($request->only(['calle', 'colonia', 'cp', 'municipio', 'ciudad', 'estado']));
             $address_id = $address->id;
-        } else {
+        }
+        else {
             $address_id = $request->address_id;
         }
 
         Department::create([
-            'areacve'    => $request->areacve,
-            'areanom'    => $request->areanom,
-            'tipo'       => $request->tipo,
-            'unit_id'    => $request->unit_id,
+            'areacve' => $request->areacve,
+            'areanom' => $request->areanom,
+            'tipo' => $request->tipo,
+            'unit_id' => $request->unit_id,
             'address_id' => $address_id,
         ]);
 
-        return redirect()->route('departments.index')->with('success','Departamento creado correctamente.');
+        return redirect()->route('departments.index')->with('success', 'Departamento creado correctamente.');
     }
 
     public function show(Department $department)
@@ -117,50 +114,42 @@ class DepartmentController extends Controller
         return view('departments.edit', compact('department', 'units'));
     }
 
-    public function update(Request $request, Department $department)
+    public function update(DepartmentRequest $request, Department $department)
     {
-        $request->validate([
-            'areacve' => 'required|string|max:50|unique:departments,areacve,' . $department->id,
-            'areanom' => 'required|string|max:255',
-            'tipo'    => 'required|string',
-            'unit_id' => 'required|exists:units,id',
-            'calle'   => 'nullable|string|max:255',
-            'colonia' => 'nullable|string|max:255',
-            'cp'      => 'nullable|string|max:10',
-        ]);
+        // La validación ya se hizo automáticamente en DepartmentRequest
 
         $address = null;
-        if ($request->filled(['calle','colonia','cp'])) {
+        if ($request->filled(['calle', 'colonia', 'cp'])) {
             $address = Address::updateOrCreate(
-                ['id' => $department->address_id],
-                [
-                    'calle'     => $request->calle,
-                    'colonia'   => $request->colonia,
-                    'cp'        => $request->cp,
-                    'municipio' => 'OAXACA DE JUAREZ',
-                    'ciudad'    => 'OAXACA DE JUAREZ',
-                    'estado'    => 'OAXACA',
-                ]
+            ['id' => $department->address_id],
+            [
+                'calle' => $request->calle,
+                'colonia' => $request->colonia,
+                'cp' => $request->cp,
+                'municipio' => 'OAXACA DE JUAREZ',
+                'ciudad' => 'OAXACA DE JUAREZ',
+                'estado' => 'OAXACA',
+            ]
             );
         }
 
         $department->update([
-            'areacve'    => $request->areacve,
-            'areanom'    => $request->areanom,
-            'tipo'       => $request->tipo,
-            'unit_id'    => $request->unit_id,
+            'areacve' => $request->areacve,
+            'areanom' => $request->areanom,
+            'tipo' => $request->tipo,
+            'unit_id' => $request->unit_id,
             'address_id' => $address ? $address->id : $department->address_id,
         ]);
 
         return redirect()->route('departments.index')
-                        ->with('success', 'Departamento actualizado correctamente.');
+            ->with('success', 'Departamento actualizado correctamente.');
     }
 
     public function destroy(Department $department)
     {
         $department->delete();
         return redirect()->route('departments.index')
-                        ->with('success', 'Departamento eliminado correctamente.');
+            ->with('success', 'Departamento eliminado correctamente.');
     }
 
     public function showImport()
@@ -175,7 +164,8 @@ class DepartmentController extends Controller
 
         try {
             Excel::import(new StructureImport(), $request->file('file'));
-        } catch (\Exception $e) {
+        }
+        catch (\Exception $e) {
             return back()->with('error', 'Error al importar: ' . $e->getMessage());
         }
 
@@ -187,20 +177,20 @@ class DepartmentController extends Controller
     {
 
         $headers = [[
-            'regcve',
-            'regnom',
-            'unicve',
-            'uninom',
-            'areacve',
-            'areanom',
-            'tipo',
-            'calle',
-            'colonia',
-            'cp',
-            'municipio',
-            'ciudad',
-            'estado'
-        ]];
+                'regcve',
+                'regnom',
+                'unicve',
+                'uninom',
+                'areacve',
+                'areanom',
+                'tipo',
+                'calle',
+                'colonia',
+                'cp',
+                'municipio',
+                'ciudad',
+                'estado'
+            ]];
 
         $data = $headers;
 
@@ -223,7 +213,7 @@ class DepartmentController extends Controller
         return \Maatwebsite\Excel\Facades\Excel::download($export, $fileName);
     }
 
-    
+
     public function downloadInstructionsPDF()
     {
         $pdf = \PDF::loadView('departments.instructions_pdf');
