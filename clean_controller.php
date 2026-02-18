@@ -1,4 +1,6 @@
 <?php
+$content = <<<'EOD'
+<?php
 
 namespace App\Http\Controllers;
 
@@ -305,8 +307,7 @@ class AssetController extends Controller
         if (!hasRole(['super_admin', 'admin']))
             abort(403);
 
-        // Capture validated data explicitly
-        $validatedData = $request->validate([
+        $request->validate([
             'bulk_estado' => 'nullable|in:OPERACION,GARANTIA,SINIESTRO,RESGUARDADO,DANADO,BAJA,OTRO',
             'bulk_supplier_id' => 'nullable|exists:suppliers,id',
             'bulk_department_id' => 'nullable|exists:departments,id',
@@ -315,8 +316,7 @@ class AssetController extends Controller
         ]);
 
         try {
-            // Pass the explicitly captured data
-            $this->assetService->bulkUpdateByTag($tag, $validatedData);
+            $this->assetService->bulkUpdateByTag($tag, $request->validated());
             return back()->with('success', 'Acciones masivas aplicadas correctamente al TAG: ' . $tag);
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
@@ -790,3 +790,7 @@ class AssetController extends Controller
         return response()->json(['active' => false]);
     }
 }
+EOD;
+
+file_put_contents('app/Http/Controllers/AssetController.php', $content);
+echo "AssetController cleaned successfully";

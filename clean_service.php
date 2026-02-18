@@ -1,4 +1,6 @@
 <?php
+$content = <<<'EOD'
+<?php
 
 namespace App\Services;
 
@@ -191,3 +193,7 @@ class AssetService
         });
     }
 }
+EOD;
+
+file_put_contents('app/Services/AssetService.php', $content);
+echo "AssetService cleaned successfully";

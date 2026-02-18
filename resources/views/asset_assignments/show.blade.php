@@ -40,6 +40,15 @@
             // $groupedAssignments viene del controlador
             $groupCount = $groupedAssignments->count();
             $isSidebar = $groupCount > 10;
+
+            // Definición global de equipos principales para ordenamiento y selección
+            $mainDeviceTypes = [
+                'Equipo All In One',
+                'Equipo Escritorio',
+                'Escritorio Avanzada',
+                'Laptop de Avanzada',
+                'Laptop de Intermedia',
+            ];
         @endphp
 
         {{-- NAVEGACIÓN + CONTENIDO: Sidebar si >10, Tabs si <=10 --}} {{-- Mensaje dinámico (estilo Import) --}} <div
@@ -90,15 +99,7 @@
                         @foreach($groupedAssignments as $tag => $assignments)
 
                             @php
-                                $mainDeviceTypes = [
-                                    'Equipo Escritorio',
-                                    'Escritorio Avanzada',
-                                    'Laptop Avanzada',
-                                    'Laptop Intermedia',
-                                    'Equipo All In One'
-                                ];
-
-                                // Orden estable: principal primero
+                                // Orden estable: principal primero usando la lista global
                                 $sortedAssignments = $assignments
                                     ->sortBy(function ($x) use ($mainDeviceTypes) {
                                         $type = optional($x->asset->deviceType)->equipo;
@@ -200,9 +201,17 @@
                         <div class="tab-pane fade {{ $i === 0 ? 'show active' : '' }}" id="content-{{ $i }}">
                             <div class="d-flex flex-wrap gap-3">
 
-                                @php $groupIds = $assignments->pluck('id')->implode(','); @endphp
+                                @php
+                                    // Aplicar el mismo ordenamiento que en la vista sidebar
+                                    $sortedAssignments = $assignments->sortBy(function ($x) use ($mainDeviceTypes) {
+                                        $type = optional($x->asset->deviceType)->equipo;
+                                        return in_array($type, $mainDeviceTypes) ? 0 : 1;
+                                    })->values();
 
-                                @foreach($assignments as $index => $a)
+                                    $groupIds = $sortedAssignments->pluck('id')->implode(',');
+                                @endphp
+
+                                @foreach($sortedAssignments as $index => $a)
                                     <div class="card assignment-card shadow-soft p-3
                                                     {{ $a->assignment_type === 'temporal' ? 'temporal-card' : 'permanente-card' }}"
                                         data-tag="{{ optional($a->asset)->tag ?: 'Sin tag' }}">
@@ -321,16 +330,7 @@
                                     @php
                                         $ids = $assignments->pluck('id')->implode(',');
 
-                                        // Mismos tipos que usas para detectar "principal"
-                                        $mainDeviceTypes = [
-                                            'Equipo Escritorio',
-                                            'Escritorio Avanzada',
-                                            'Laptop Avanzada',
-                                            'Laptop Intermedia',
-                                            'Equipo All In One'
-                                        ];
-
-                                        // Buscar el principal dentro del grupo
+                                        // Buscar el principal dentro del grupo usando la lista global
                                         $mainAssignment = $assignments->first(function ($x) use ($mainDeviceTypes) {
                                             $type = optional(optional($x->asset)->deviceType)->equipo;
                                             return in_array($type, $mainDeviceTypes);

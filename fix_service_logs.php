@@ -1,4 +1,6 @@
 <?php
+$content = <<<'EOD'
+<?php
 
 namespace App\Services;
 
@@ -7,6 +9,7 @@ use App\Models\AssetAssignment;
 use App\Models\AssetNetworkInterface;
 use App\Models\UnitTechnician;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class AssetService
 {
@@ -164,10 +167,15 @@ class AssetService
 
             // Mapear claves bulk_ a columnas reales y filtrar nulos
             $updates = [];
+
+            Log::info('BulkUpdateByTag Service Data:', $data);
+
             if (!empty($data['bulk_supplier_id'])) $updates['supplier_id'] = $data['bulk_supplier_id'];
             if (!empty($data['bulk_department_id'])) $updates['department_id'] = $data['bulk_department_id'];
             if (!empty($data['bulk_marca'])) $updates['marca'] = $data['bulk_marca'];
             if (!empty($data['bulk_modelo'])) $updates['modelo'] = $data['bulk_modelo'];
+
+            Log::info('BulkUpdateByTag Calculated Updates:', $updates);
 
             if (!empty($updates)) {
                 Asset::where('tag', $tag)->where('estado', '!=', 'BAJA')->update($updates);
@@ -191,3 +199,7 @@ class AssetService
         });
     }
 }
+EOD;
+
+file_put_contents('app/Services/AssetService.php', $content);
+echo "File written successfully with LOGS to app/Services/AssetService.php";
