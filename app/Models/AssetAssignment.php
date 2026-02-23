@@ -64,7 +64,8 @@ class AssetAssignment extends Model
         $assignedAt = null,
         ?string $observations = null,
         string $assignmentType = 'normal',
-        ?string $temporaryHolder = null
+        ?string $temporaryHolder = null,
+        ?int $explicitDepartmentId = null
     ): self {
         $assignedAt = $assignedAt ?: now();
 
@@ -98,11 +99,13 @@ class AssetAssignment extends Model
             $employeeId = $technician->id;
         }
 
-        // Crea la asignación actual y fija el departamento según el departamento del empleado
+        $departmentForAssignment = $explicitDepartmentId ?? Employee::find($employeeId)?->department_id;
+
+        // Crea la asignación actual y fija el departamento según el departamento del empleado (o el override explícito)
         $assignment = self::create([
             'asset_id' => $assetId,
             'employee_id' => $employeeId,
-            'department_id' => Employee::find($employeeId)?->department_id,
+            'department_id' => $departmentForAssignment,
             'assigned_at' => $assignedAt,
             'returned_at' => null,
             'is_current' => true,
@@ -117,7 +120,7 @@ class AssetAssignment extends Model
             ]);
         }
 
-        // Sincroniza el activo: cambia estado y mueve el department_id al del responsable actual
+        // Sincroniza el activo: cambia estado y mueve el department_id al del responsable actual (o el override)
         $asset = $assignment->asset;
         if ($asset) {
             $asset->update([

@@ -168,12 +168,35 @@ class AssetsImport implements ToCollection, WithHeadingRow, WithChunkReading, Wi
                 if (!$technician) {
                     throw new \Exception("No hay técnico de informática configurado para el usuario importador (Falló resolución inicial).");
                 }
+                
+                // ==============================================================
+                // INICIO: Regla de Override de Departamento
+                // ==============================================================
+                // 1. Por defecto, asignamos estrictamente el ID del departamento original del empleado
+                // (Si la fila no tiene empleado marcado, hacemos fallback al departamento de la celda del Excel, 
+                // y si la celda también está vacía, finalmente al departamento del técnico actual).
+                $finalDepartment = $empleado?->department ?? ($deptFinal ?? $technician->department);
 
-                $finalDepartment = $empleado?->department ?? $deptFinal ?? $technician->department;
+                // 2. Si identificamos al empleado en esta fila del Excel, validamos si es el técnico
+                if ($empleado) {
+                    $isTechnician = \App\Models\UnitTechnician::where('employee_id', $empleado->id)
+                        ->where('is_active', 'true') // Aseguramos que el chequeo sea estrictamente booleano válido
+                        ->exists();
 
+                    // 3. Aplicar Excepción (Override): Si es Técnico Y Excel trae departamento válido ($deptFinal)
+                    if ($isTechnician && !empty($normalized['DEPARTAMENTO']) && $deptFinal) {
+                        // El excel trajo texto en DEPARTAMENTO, y $deptFinal ya es el objeto Department
+                        // (resuelto o creado dinámicamente arriba en Validación de Catálogos).
+                        $finalDepartment = $deptFinal;
+                    }
+                }
+                
                 if (!$finalDepartment) {
                     throw new \Exception("No se pudo determinar el departamento para el activo.");
                 }
+                // ==============================================================
+                // FIN: Regla de Override de Departamento
+                // ==============================================================
 
                 // Crear/Actualizar Activo
                 $asset = Asset::updateOrCreate(
@@ -223,7 +246,9 @@ class AssetsImport implements ToCollection, WithHeadingRow, WithChunkReading, Wi
                             employeeId: $empleado->id,
                             assignedAt: now(),
                             observations: 'Importación masiva',
-                            assignmentType: 'normal'
+                            assignmentType: 'normal',
+                            temporaryHolder: null,
+                            explicitDepartmentId: $finalDepartment->id
                         );
                     }
 
@@ -239,7 +264,9 @@ class AssetsImport implements ToCollection, WithHeadingRow, WithChunkReading, Wi
                             employeeId: null, // null usará lógica de técnico internamente
                             assignedAt: now(),
                             observations: 'Importación: En Resguardo',
-                            assignmentType: 'normal'
+                            assignmentType: 'normal',
+                            temporaryHolder: null,
+                            explicitDepartmentId: $finalDepartment->id
                         );
                     } elseif (!$currentAssignment) {
                         // Primera vez, asignar a técnico
@@ -248,7 +275,9 @@ class AssetsImport implements ToCollection, WithHeadingRow, WithChunkReading, Wi
                             employeeId: null,
                             assignedAt: now(),
                             observations: 'Alta por Importación (Resguardo)',
-                            assignmentType: 'normal'
+                            assignmentType: 'normal',
+                            temporaryHolder: null,
+                            explicitDepartmentId: $finalDepartment->id
                         );
                     }
                     // Usamos el estado del CSV si existe, si no, 'RESGUARDADO'
@@ -345,14 +374,15 @@ class AssetsImport implements ToCollection, WithHeadingRow, WithChunkReading, Wi
                 }
             },
             \Maatwebsite\Excel\Events\ImportFailed::class => function ($event) {
-                ImportTask::where('id', $this->taskId)->update([
-                    'status' => 'failed',
-                    // Si falla el proceso global (ej. timeout), agregamos ese error general
-                    'errors' => array_merge(
-                        $task->errors ?? [],
-                        [$event->getException()->getMessage()]
-                    )
-                ]);
+                $task = ImportTask::find($this->taskId);
+                if ($task) {
+                    $errors = is_array($task->errors) ? $task->errors : [];
+                    $errors[] = $event->getException()->getMessage();
+                    $task->update([
+                        'status' => 'failed',
+                        'errors' => $errors
+                    ]);
+                }
             },
         ];
     }
