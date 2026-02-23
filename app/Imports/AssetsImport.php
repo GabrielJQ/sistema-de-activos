@@ -81,6 +81,11 @@ class AssetsImport implements ToCollection, WithHeadingRow, WithChunkReading, Wi
             // 1. Normalización
             $normalized = $this->normalizeRow($row);
 
+            // Ignorar filas completamente en blanco (frecuentes al final de Excels editados)
+            if (empty($normalized['TAG']) && empty($normalized['SERIE']) && empty($normalized['EQUIPO'])) {
+                continue;
+            }
+
             // 2. Validación Básica
             $validator = Validator::make($normalized, [
                 'TAG' => 'required_without:SERIE',

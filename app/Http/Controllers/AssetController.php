@@ -29,6 +29,7 @@ class AssetController extends Controller
     {
         $this->assetService = $assetService;
     }
+
     // Mostrar listado de activos
     public function index(Request $request)
     {
@@ -39,6 +40,7 @@ class AssetController extends Controller
 
         // Obtener departamento de informática
         $informaticaDept = Department::where('areanom', 'INFORMATICA')->first();
+        
         //1
         $assignedAssets = Asset::with(['deviceType', 'currentHolder', 'department'])
             ->when($busqueda, function ($query, $busqueda) {
@@ -59,6 +61,7 @@ class AssetController extends Controller
             )
             ->orderBy('created_at', 'desc')
             ->get();
+            
         //2
         $unassignedAssets = Asset::with(['deviceType', 'department', 'supplier'])
             ->when($busqueda, function ($query, $busqueda) {
@@ -83,6 +86,7 @@ class AssetController extends Controller
             )
             ->orderBy('created_at', 'desc')
             ->get();
+            
         //3
         $damagedAssets = Asset::with(['deviceType', 'currentHolder', 'department'])
             ->when($busqueda, function ($query, $busqueda) {
@@ -97,6 +101,7 @@ class AssetController extends Controller
             ->whereIn('estado', ['DANADO', 'SINIESTRO'])
             ->orderBy('created_at', 'desc')
             ->get();
+            
         //4
         $inactiveAssets = Asset::with(['deviceType', 'currentHolder', 'department'])
             ->when($busqueda, function ($query, $busqueda) {
@@ -120,7 +125,6 @@ class AssetController extends Controller
             'damagedTab' => $request->input('tab') === 'damaged',
             'inactiveTab' => $request->input('tab') === 'inactive',
         ]);
-
     }
 
     // Mostrar formulario para crear un nuevo activo
@@ -219,8 +223,6 @@ class AssetController extends Controller
             return back()->with('error', $e->getMessage());
         }
 
-
-
         return redirect()
             ->route('assets.index')
             ->with('success', 'Activo actualizado correctamente.');
@@ -241,7 +243,6 @@ class AssetController extends Controller
         }
 
         //Eliminación grupal por TAG
-
         $tag = $asset->tag;
 
         $relatedAssets = Asset::where('tag', $tag)->get();
@@ -321,8 +322,6 @@ class AssetController extends Controller
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
         }
-
-        return back()->with('success', 'Acciones masivas aplicadas correctamente al TAG: ' . $tag);
     }
 
     // Mostrar formulario de importación
@@ -634,7 +633,7 @@ class AssetController extends Controller
     public function downloadTemplate()
     {
         $headers = [
-            ['tag', 'equipo', 'marca', 'modelo', 'serie', 'estado', 'propiedad', 'proveedor', 'unidad', 'departamento', 'resguardo', 'activo']
+            ['tag', 'equipo', 'marca', 'modelo', 'serie', 'estado', 'propiedad', 'proveedor', 'unidad', 'departamento', 'resguardo', 'activo', 'ip']
         ];
 
         $timestamp = now()->format('Y-m-d_H-i-s');
@@ -644,14 +643,17 @@ class AssetController extends Controller
             protected $data;
             public function __construct($data)
             {
-                $this->data = $data; }
+                $this->data = $data;
+            }
             public function array(): array
             {
-                return $this->data; }
+                return $this->data;
+            }
         };
 
         return Excel::download($export, $filename);
     }
+    
     public function downloadInstructionsPDF()
     {
         // Lista de tipos de equipo

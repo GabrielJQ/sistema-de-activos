@@ -108,6 +108,7 @@
         <li><strong>resguardo:</strong> Nombre del empleado que resguarda el equipo. OBLIGATORIO (el formato es nombre,
             apellido paterno y apellido materno).</li>
         <li><strong>activo:</strong> Número de inventario institucional. (Este dato puede permanecer vacio).</li>
+        <li><strong>ip:</strong> Opcional, de uso exclusivo para Impresoras/Multifuncionales para su monitoreo en red.</li>
     </ul>
     <h2>2. Tipos de equipo validos (columna 'equipo')</h2>
     <table class="list-reference" style="width: 100%; border-collapse: collapse; font-size: 11px;">
