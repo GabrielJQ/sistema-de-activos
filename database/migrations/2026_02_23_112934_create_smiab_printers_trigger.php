@@ -24,7 +24,7 @@ return new class extends Migration
                 ) INTO v_is_printer;
 
                 IF v_is_printer THEN
-                    SELECT CONCAT(a.marca, ' ', a.modelo), a.department_id, d.unit_id, u.region_id
+                    SELECT CONCAT(a.marca, ' ', d.areanom), a.department_id, d.unit_id, u.region_id
                     INTO v_name, v_dept_id, v_unit_id, v_reg_id
                     FROM assets a
                     LEFT JOIN departments d ON a.department_id = d.id
@@ -56,7 +56,7 @@ return new class extends Migration
             CREATE OR REPLACE FUNCTION sync_printer_from_asset()
             RETURNS TRIGGER AS $$
             DECLARE
-                v_ip_address inet; v_name VARCHAR; v_unit_id BIGINT; v_reg_id BIGINT; v_is_printer BOOLEAN;
+                v_ip_address inet; v_name VARCHAR; v_dept_name VARCHAR; v_unit_id BIGINT; v_reg_id BIGINT; v_is_printer BOOLEAN;
             BEGIN
                 -- Buscar si este activo tiene una IP registrada
                 SELECT ip_address INTO v_ip_address
@@ -71,13 +71,13 @@ return new class extends Migration
 
                     IF v_is_printer THEN
                         -- Recuperar los ids de unidad y región basándonos en el nuevo department_id
-                        SELECT u.id, u.region_id
-                        INTO v_unit_id, v_reg_id
+                        SELECT u.id, u.region_id, d.areanom
+                        INTO v_unit_id, v_reg_id, v_dept_name
                         FROM departments d
                         LEFT JOIN units u ON d.unit_id = u.id
                         WHERE d.id = NEW.department_id;
 
-                        v_name := CONCAT(NEW.marca, ' ', NEW.modelo);
+                        v_name := CONCAT(NEW.marca, ' ', v_dept_name);
 
                         INSERT INTO printers (asset_id, ip_printer, name_printer, department_id, unit_id, region_id, created_at, updated_at)
                         VALUES (NEW.id, TRIM(v_ip_address::text)::inet, v_name, NEW.department_id, v_unit_id, v_reg_id, NOW(), NOW())

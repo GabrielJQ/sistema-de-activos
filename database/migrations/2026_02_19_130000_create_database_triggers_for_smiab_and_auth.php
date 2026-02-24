@@ -24,7 +24,7 @@ return new class extends Migration
                 ) INTO v_is_printer;
 
                 IF v_is_printer THEN
-                    SELECT a.department_id, d.unit_id, u.region_id, CONCAT(a.marca, ' ', a.modelo)
+                    SELECT a.department_id, d.unit_id, u.region_id, CONCAT(a.marca, ' ', d.areanom)
                     INTO v_dept_id, v_unit_id, v_reg_id, v_name
                     FROM public.assets a
                     JOIN public.departments d ON a.department_id = d.id

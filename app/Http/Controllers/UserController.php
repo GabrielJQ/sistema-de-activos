@@ -60,7 +60,12 @@ class UserController extends Controller
 
         $auth = auth()->user();
         $validated = $request->validated();
-        $validated['password'] = Hash::make($validated['password']);
+
+        // El password real ingresado por el usuario en el formulario
+        $plainPassword = $request->input('password');
+
+        // Encriptar para la base local
+        $validated['password'] = Hash::make($plainPassword);
 
         // Set region/unit based on auth user if not super admin
         if (!$auth->isSuperAdmin()) {
@@ -68,11 +73,41 @@ class UserController extends Controller
             $validated['unit_id'] = $auth->unit_id;
         }
 
-        $user = User::create($validated);
+        try {
+            // 1. Crear el usuario en Supabase Auth primero
+            $supabaseService = app(\App\Services\SupabaseAuthService::class);
+            $uuid = $supabaseService->createUser(
+                $validated['email'],
+                $plainPassword,
+            [
+                'name' => $validated['name'],
+                'role' => $request->role,
+            ]
+            );
 
-        event(new Registered($user));
+            // 2. El trigger de la BD ya creó el registro en 'public.users' silenciosamente.
+            //    Lo buscamos por su email y actualizamos sus datos (como role, region_id, unit_id y password)
+            $user = User::where('email', $validated['email'])->first();
 
-        return redirect()->route('users.index')->with('success', 'Usuario creado correctamente.');
+            if ($user) {
+                $validated['supabase_user_id'] = $uuid;
+                $user->update($validated);
+            }
+            else {
+                // Si por alguna razón el trigger no se ejecutó, creamos el registro
+                $validated['supabase_user_id'] = $uuid;
+                $user = User::create($validated);
+            }
+
+            event(new Registered($user));
+
+            return redirect()->route('users.index')->with('success', 'Usuario creado y sincronizado correctamente en Supabase.');
+
+        }
+        catch (\Exception $e) {
+            // Si Supabase falla (por ejemplo, clave muy débil, email ya existe, etc), abortamos y mostramos el error
+            return back()->with('error', 'Error de Supabase: ' . $e->getMessage())->withInput();
+        }
     }
 
     /**
@@ -103,7 +138,8 @@ class UserController extends Controller
 
         if ($request->filled('password')) {
             $validated['password'] = Hash::make($validated['password']);
-        } else {
+        }
+        else {
             unset($validated['password']);
         }
 
@@ -144,8 +180,8 @@ class UserController extends Controller
 
         $data = $users->map(function ($user) {
             return [
-                'id' => $user->id,
-                'is_online' => $user->isOnline(),
+            'id' => $user->id,
+            'is_online' => $user->isOnline(),
             ];
         });
 
