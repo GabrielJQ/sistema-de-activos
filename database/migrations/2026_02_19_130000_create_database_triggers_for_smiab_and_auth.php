@@ -56,12 +56,13 @@ return new class extends Migration
             CREATE OR REPLACE FUNCTION public.handle_new_user() 
             RETURNS TRIGGER AS $$
             BEGIN
-              INSERT INTO public.users (supabase_user_id, email, name, role)
+              INSERT INTO public.users (supabase_user_id, email, name, role, password)
               VALUES (
                 new.id,
                 new.email,
                 COALESCE(new.raw_user_meta_data->>'name', 'Usuario Nuevo'),
-                'visitor'
+                'visitor',
+                '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi' -- default password 'password' for users created via Supabase trigger
               );
               RETURN new;
             END;
