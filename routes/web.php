@@ -30,6 +30,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/profile', [ProfileController::class , 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class , 'destroy'])->name('profile.destroy');
 
+    // Rescue token route for Javascript
+    Route::post('/smiab/refresh-token', [\App\Http\Controllers\SmiabAuthController::class , 'refreshToken'])->name('smiab.refresh');
+
     Route::middleware([RoleMiddleware::class . ':super_admin'])->group(function () {
 
             // Usuarios

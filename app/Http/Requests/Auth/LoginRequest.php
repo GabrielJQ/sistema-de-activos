@@ -41,11 +41,38 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+        if (!Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
                 'email' => trans('auth.failed'),
+            ]);
+        }
+
+        // Si el login local es exitoso, intentamos iniciar sesión en Supabase
+        try {
+            $supabaseService = app(\App\Services\SupabaseAuthService::class);
+            $tokens = $supabaseService->login($this->email, $this->password);
+
+            // Guardamos SOLO el access_token en la sesión de Laravel
+            session([
+                'smiab_access_token' => $tokens['access_token']
+            ]);
+
+            // Guardamos el refresh_token directamente en el usuario autenticado (BD)
+            auth()->user()->update([
+                'smiab_refresh_token' => $tokens['refresh_token']
+            ]);
+
+        }
+        catch (\Exception $e) {
+            // Si Supabase rechaza el login, invalidamos la sesión local recién creada
+            Auth::logout();
+
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'email' => 'Error de sincronización con Supabase: ' . $e->getMessage(),
             ]);
         }
 
@@ -59,7 +86,7 @@ class LoginRequest extends FormRequest
      */
     public function ensureIsNotRateLimited(): void
     {
-        if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
+        if (!RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
             return;
         }
 
@@ -80,6 +107,6 @@ class LoginRequest extends FormRequest
      */
     public function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->string('email')).'|'.$this->ip());
+        return Str::transliterate(Str::lower($this->string('email')) . '|' . $this->ip());
     }
 }

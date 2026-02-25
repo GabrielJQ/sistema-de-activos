@@ -9,11 +9,87 @@ class SupabaseAuthService
 {
     protected ?string $url;
     protected ?string $key;
+    protected ?string $anonKey;
 
     public function __construct()
     {
         $this->url = config('services.supabase.url');
         $this->key = config('services.supabase.service_role');
+        $this->anonKey = config('services.supabase.anon_key');
+    }
+
+    /**
+     * Authenticate a user with Supabase Auth (Sign In)
+     *
+     * @param string $email
+     * @param string $password
+     * @return array Contains access_token and refresh_token
+     * @throws Exception
+     */
+    public function login(string $email, string $password): array
+    {
+        if (empty($this->url) || empty($this->anonKey)) {
+            throw new Exception("Supabase URL or Anon Key is missing in configuration.");
+        }
+
+        $endpoint = "{$this->url}/auth/v1/token?grant_type=password";
+
+        $response = Http::withHeaders([
+            'apikey' => $this->anonKey,
+            'Content-Type' => 'application/json',
+        ])->post($endpoint, [
+            'email' => $email,
+            'password' => $password,
+        ]);
+
+        if ($response->failed()) {
+            $error = $response->json();
+            $message = $error['error_description'] ?? $error['msg'] ?? $response->body();
+            throw new Exception("Supabase Login Error: " . $message);
+        }
+
+        $data = $response->json();
+
+        return [
+            'access_token' => $data['access_token'] ?? null,
+            'refresh_token' => $data['refresh_token'] ?? null,
+        ];
+    }
+
+    /**
+     * Refresh Supabase Session
+     *
+     * @param string $refreshToken
+     * @return array Contains access_token and refresh_token
+     * @throws Exception
+     */
+    public function refreshToken(string $refreshToken): array
+    {
+        if (empty($this->url) || empty($this->anonKey)) {
+            throw new Exception("Supabase URL or Anon Key is missing in configuration.");
+        }
+
+        $endpoint = "{$this->url}/auth/v1/token?grant_type=refresh_token";
+
+        $response = Http::withHeaders([
+            'apikey' => $this->anonKey,
+            'Content-Type' => 'application/json',
+        ])->post($endpoint, [
+            'refresh_token' => $refreshToken,
+        ]);
+
+        if ($response->failed()) {
+            $error = $response->json();
+            $message = $error['error_description'] ?? $error['msg'] ?? $response->body();
+            throw new Exception("Supabase Refresh Token Error: " . $message);
+        }
+
+        $data = $response->json();
+
+        return [
+            'access_token' => $data['access_token'] ?? null,
+            'refresh_token' => $data['refresh_token'] ?? null,
+        ];
     }
 
     /**
@@ -38,11 +114,11 @@ class SupabaseAuthService
             'Authorization' => 'Bearer ' . $this->key,
             'Content-Type' => 'application/json',
         ])->post($endpoint, [
-                    'email' => $email,
-                    'password' => $password,
-                    'email_confirm' => true,
-                    'user_metadata' => $metadata,
-                ]);
+            'email' => $email,
+            'password' => $password,
+            'email_confirm' => true,
+            'user_metadata' => $metadata,
+        ]);
 
         if ($response->failed()) {
             throw new Exception("Supabase Auth Error: " . $response->body());

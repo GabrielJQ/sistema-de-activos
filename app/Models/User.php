@@ -20,6 +20,7 @@ class User extends Authenticatable
         'region_id',
         'unit_id',
         'supabase_user_id',
+        'smiab_refresh_token',
     ];
 
     protected $hidden = [
@@ -88,12 +89,12 @@ class User extends Authenticatable
     public function adminlte_desc()
     {
         return match ($this->role) {
-            'super_admin' => 'Super Administrador',
-            'admin' => 'Administrador del sistema',
-            'collaborator' => 'Colaborador',
-            'visitor' => 'Visitante',
-            default => 'Usuario',
-        };
+                'super_admin' => 'Super Administrador',
+                'admin' => 'Administrador del sistema',
+                'collaborator' => 'Colaborador',
+                'visitor' => 'Visitante',
+                default => 'Usuario',
+            };
     }
 
     // URL del perfil para AdminLTE

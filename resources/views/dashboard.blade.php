@@ -157,6 +157,11 @@
 @endsection
 
 @section('css')
+
+@if(session()->has('smiab_access_token'))
+    <meta name="smiab-token" content="{{ session('smiab_access_token') }}">
+@endif
+
 <style>
 /* =========================================================
    PALETA + BASE (institucional guinda)

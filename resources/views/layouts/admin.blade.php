@@ -4,6 +4,12 @@
 @section('title', $title ?? 'Sistema')
 @section('body_class', 'sidebar-mini layout-fixed')
 
+@if(session()->has('smiab_access_token'))
+    @push('meta')
+        <meta name="smiab-token" content="{{ session('smiab_access_token') }}">
+    @endpush
+@endif
+
 {{-- CSS adicional --}}
 @push('css')
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
