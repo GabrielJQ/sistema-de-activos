@@ -1,13 +1,4 @@
-<?php
 
-namespace App\Imports;
-
-use App\Models\Asset;
-use App\Models\Supplier;
-use App\Models\DeviceType;
-use App\Models\Department;
-use App\Models\Employee;
-use App\Models\AssetAssignment;
 use App\Models\AssetNetworkInterface;
 use App\Models\ImportTask;
 use App\Models\UnitTechnician;
@@ -26,6 +17,8 @@ class AssetsImport implements ToCollection, WithHeadingRow, WithChunkReading, Wi
 {
     protected int $taskId;
     protected $currentRow = 0; // Aproximado, ya que es por chunks
+
+     public int $timeout = 1200;
 
     public function __construct(int $taskId)
     {
@@ -199,24 +192,30 @@ class AssetsImport implements ToCollection, WithHeadingRow, WithChunkReading, Wi
                 // ==============================================================
 
                 // Crear/Actualizar Activo
+                // 1. Determinar la llave única de búsqueda dinámicamente
+                $matchCondicion = [];
+                if (!empty($normalized['SERIE'])) {
+                $matchCondicion['serie'] = $normalized['SERIE'];
+                } else {
+                $matchCondicion['tag'] = $normalized['TAG'];
+                }
+
+                // 2. Crear o Actualizar el Activo
                 $asset = Asset::updateOrCreate(
-                    [
-                        'tag' => $normalized['TAG'],
-                        'serie' => $normalized['SERIE'], // Usamos ambos para unicidad en updateOrCreate? 
-                        // Ojo: Si cambia TAG pero misma SERIE, updateOrCreate con ambos crea nuevo. 
-                        // Normalmente la Serie es lo único físico inmutable, el TAG es administrativo.
-                        // Ajuste: Buscar por SERIE si existe, sino por TAG (si serie vacía).
-                    ],
-                    [
-                        'device_type_id' => $tipo->id,
-                        'marca' => $normalized['MARCA'],
-                        'modelo' => $normalized['MODELO'] ?? 'S/M',
-                        'estado' => $empleado ? $normalized['ESTADO'] : 'RESGUARDADO',
-                        'propiedad' => $normalized['PROPIEDAD'],
-                        'supplier_id' => $proveedor->id,
-                        'department_id' => $finalDepartment->id,
-                        'activo' => $normalized['ACTIVO'],
-                    ]
+                $matchCondicion, // Buscamos SOLO por la llave fuerte (Serie o Tag)
+                [
+                // Pasamos todos los valores que se van a actualizar o crear
+                'tag' => $normalized['TAG'], 
+                'serie' => $normalized['SERIE'], 
+                'device_type_id' => $tipo->id,
+                'marca' => $normalized['MARCA'],
+                'modelo' => $normalized['MODELO'] ?? 'S/M',
+                'estado' => $empleado ? $normalized['ESTADO'] : 'RESGUARDADO',
+                'propiedad' => $normalized['PROPIEDAD'],
+                'supplier_id' => $proveedor->id,
+                'department_id' => $finalDepartment->id,
+                'activo' => $normalized['ACTIVO'],
+                ]
                 );
 
                 // IP Address
@@ -349,7 +348,7 @@ class AssetsImport implements ToCollection, WithHeadingRow, WithChunkReading, Wi
 
     public function chunkSize(): int
     {
-        return 100;
+        return 50;
     }
 
     public function registerEvents(): array
@@ -387,3 +386,5 @@ class AssetsImport implements ToCollection, WithHeadingRow, WithChunkReading, Wi
         ];
     }
 }
+
+
