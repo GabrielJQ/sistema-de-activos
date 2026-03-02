@@ -46,7 +46,7 @@ class EmployeesImport implements ToCollection, WithHeadingRow, WithCustomCsvSett
 
         // 1. Precarga de Unidades (para validar que existan)
         $units = \App\Models\Unit::all()->keyBy(
-            fn($u) => strtoupper(trim($u->uninom))
+        fn($u) => strtoupper(trim($u->uninom))
         );
 
         // 2. Precarga de Departamentos agrupados por Unidad
@@ -90,38 +90,60 @@ class EmployeesImport implements ToCollection, WithHeadingRow, WithCustomCsvSett
             $deptFinal = null;
 
             // Paso A: Validar Unidad
-            if (!isset($units[$unitName])) {
+            $unitObj = $units[$unitName] ?? null;
+            if (!$unitObj) {
                 $this->logError($newErrors, $normalized, "Unidad '{$unitName}' no existe.");
                 continue;
             }
 
-            // Paso B: Buscar Departamento DENTRO de esa unidad
+            // Paso B: Buscar Departamento DENTRO de esa unidad (o auto-crear)
             if (isset($departmentsByUnit[$unitName][$deptName])) {
                 $deptFinal = $departmentsByUnit[$unitName][$deptName];
-            } else {
-                $this->logError($newErrors, $normalized, "El departamento '{$deptName}' no pertenece a la unidad '{$unitName}' o no existe.");
-                continue;
+            }
+            else {
+                if (!empty($deptName)) {
+                    try {
+                        $deptFinal = Department::create([
+                            'unit_id' => $unitObj->id,
+                            'areanom' => $deptName,
+                            'tipo' => 'Oficina', // Default
+                            'areacve' => 0,
+                        ]);
+
+                        // Agregar al caché para siguientes filas
+                        $departmentsByUnit[$unitName][$deptName] = $deptFinal;
+                    }
+                    catch (\Exception $e) {
+                        $this->logError($newErrors, $normalized, "Error al crear departamento '{$deptName}' en '{$unitName}': " . $e->getMessage());
+                        continue;
+                    }
+                }
+                else {
+                    $this->logError($newErrors, $normalized, "El departamento está vacío.");
+                    continue;
+                }
             }
 
             try {
                 // Crear o actualizar empleado
                 Employee::updateOrCreate(
-                    ['expediente' => $normalized['EXPEDIENTE']],
-                    [
-                        'nombre' => $normalized['NOMBRE'],
-                        'apellido_pat' => $normalized['APELLIDO_PAT'],
-                        'apellido_mat' => $normalized['APELLIDO_MAT'],
-                        'curp' => $normalized['CURP'],
-                        'department_id' => $deptFinal->id,
-                        'puesto' => $normalized['PUESTO'],
-                        'tipo' => $this->normalizeTipo($normalized['TIPO']),
-                        'email' => $normalized['EMAIL'],
-                        'telefono' => $normalized['TELEFONO'],
-                        'extension' => $normalized['EXTENSION'],
-                        'status' => $normalized['STATUS'],
-                    ]
+                ['expediente' => $normalized['EXPEDIENTE']],
+                [
+                    'nombre' => $normalized['NOMBRE'],
+                    'apellido_pat' => $normalized['APELLIDO_PAT'],
+                    'apellido_mat' => $normalized['APELLIDO_MAT'],
+                    'curp' => $normalized['CURP'],
+                    'department_id' => $deptFinal->id,
+                    'puesto' => $normalized['PUESTO'],
+                    'tipo' => $this->normalizeTipo($normalized['TIPO']),
+                    'email' => $normalized['EMAIL'],
+                    'telefono' => $normalized['TELEFONO'],
+                    'extension' => $normalized['EXTENSION'],
+                    'status' => $normalized['STATUS'],
+                ]
                 );
-            } catch (\Exception $e) {
+            }
+            catch (\Exception $e) {
                 $this->logError($newErrors, $normalized, "Error al guardar: " . $e->getMessage());
             }
         }
@@ -135,7 +157,7 @@ class EmployeesImport implements ToCollection, WithHeadingRow, WithCustomCsvSett
         $normalized = [];
         foreach ($row as $key => $value) {
             $key = strtoupper(trim(str_replace(' ', '_', $key)));
-            $value = trim((string) $value);
+            $value = trim((string)$value);
             $normalized[$key] = $value === '' ? null : $value;
         }
 
@@ -187,42 +209,42 @@ class EmployeesImport implements ToCollection, WithHeadingRow, WithCustomCsvSett
     {
         return [
             BeforeImport::class => function (BeforeImport $event) {
-                $totalRows = $event->getReader()->getTotalRows();
-                $total = array_sum($totalRows) - count($totalRows);
-                ImportTask::where('id', $this->taskId)->update([
+            $totalRows = $event->getReader()->getTotalRows();
+            $total = array_sum($totalRows) - count($totalRows);
+            ImportTask::where('id', $this->taskId)->update([
                     'total_rows' => $total,
                     'status' => 'processing',
                     'errors' => []
                 ]);
-            },
+        },
             AfterImport::class => function (AfterImport $event) {
-                $task = ImportTask::find($this->taskId);
-                if ($task && $task->status !== 'canceled') {
-                    $status = (count($task->errors ?? []) > 0) ? 'completed_with_errors' : 'completed';
-                    $task->update(['status' => $status]);
-                }
-            },
+            $task = ImportTask::find($this->taskId);
+            if ($task && $task->status !== 'canceled') {
+                $status = (count($task->errors ?? []) > 0) ? 'completed_with_errors' : 'completed';
+                $task->update(['status' => $status]);
+            }
+        },
             ImportFailed::class => function (ImportFailed $event) {
-                ImportTask::where('id', $this->taskId)->update([
+            ImportTask::where('id', $this->taskId)->update([
                     'status' => 'failed',
                     'errors' => array_merge(
-                        ImportTask::find($this->taskId)->errors ?? [],
-                        ['Fatal Error: ' . $event->getException()->getMessage()]
-                    )
+                    ImportTask::find($this->taskId)->errors ?? [],
+                    ['Fatal Error: ' . $event->getException()->getMessage()]
+                )
                 ]);
-            },
+        },
         ];
     }
 
     protected function normalizeTipo($tipo)
     {
         return match ($tipo) {
-            'SINDICALIZADO' => 'Sindicalizado',
-            'CONFIANZA' => 'Confianza',
-            'EVENTUAL' => 'Eventual',
-            'HONORARIOS' => 'Honorarios',
-            'OTRO' => 'Otro',
-            default => 'Otro',
-        };
+                'SINDICALIZADO' => 'Sindicalizado',
+                'CONFIANZA' => 'Confianza',
+                'EVENTUAL' => 'Eventual',
+                'HONORARIOS' => 'Honorarios',
+                'OTRO' => 'Otro',
+                default => 'Otro',
+            };
     }
 }
