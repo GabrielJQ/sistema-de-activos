@@ -82,15 +82,21 @@
 
         /* Pie de página */
         .footer {
-            margin-top: 6px;
+            position: fixed;
+            bottom: -20px;
+            left: 0px;
+            right: 0px;
+            height: 30px;
             text-align: right;
             font-size: 10px;
             color: #555;
+            border-top: 1px solid #ddd;
+            padding-top: 5px;
         }
 
         html, body {
             height: 100%;
-            page-break-after: avoid;
+            margin-bottom: 40px; /* Space for footer */
         }
 
         .image-grid {
@@ -117,6 +123,14 @@
     </style>
 </head>
 <body>
+
+    {{-- Footer fijo (debe ir antes del contenido para que repita en todas las hojas) --}}
+    <div class="footer">
+        Fecha de generación: {{ $fecha }}
+    </div>
+
+    {{-- Contenido Principal --}}
+    <main>
 
     {{-- Encabezado con logos --}}
     <table class="logos-table">
@@ -157,6 +171,7 @@
         <div class="card-body">
             <table>
                 <tr><th>Usuario</th><td>{{ $employee?->full_name ?? 'N/A' }}</td></tr>
+                <tr><th>Usuario</th><td>{{ $employee->full_name ?? 'N/A' }}</td></tr>
                 <tr><th>Correo</th><td>{{ $employee?->email ?? 'N/A' }}</td></tr>
                 <tr><th>Centro de Trabajo</th><td>ALIMENTACIÓN PARA EL BIENESTAR, S.A. DE C.V. REGIONAL OAXACA</td></tr>
                 <tr><th>Dirección o Ubicación</th><td>{{ $employee?->direccion ?? 'N/A' }}</td></tr>
@@ -185,19 +200,26 @@
             <div class="card-header">Evidencia Fotográfica</div>
             <div class="card-body image-grid">
                 @foreach($imagePaths as $path)
-                    <div class="image-item">
-                        <img src="{{ public_path('storage/' . $path) }}" alt="Evidencia del daño">
-                    </div>
+                    @php
+                        $imagePath = storage_path('app/public/' . $path);
+                        $type = pathinfo($imagePath, PATHINFO_EXTENSION);
+                        
+                        $base64 = '';
+                        if (file_exists($imagePath)) {
+                            $data = file_get_contents($imagePath);
+                            $base64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
+                        }
+                    @endphp
+                    @if($base64)
+                        <div class="image-item">
+                            <img src="{{ $base64 }}" alt="Evidencia del daño">
+                        </div>
+                    @endif
                 @endforeach
             </div>
         </div>
     @endif
 
-
-
-    <div class="footer">
-        Fecha de generación: {{ $fecha }}
-    </div>
-
+    </main>
 </body>
 </html>

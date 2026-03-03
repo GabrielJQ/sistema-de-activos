@@ -49,32 +49,9 @@ class LoginRequest extends FormRequest
             ]);
         }
 
-        // Si el login local es exitoso, intentamos iniciar sesión en Supabase
-        try {
-            $supabaseService = app(\App\Services\SupabaseAuthService::class);
-            $tokens = $supabaseService->login($this->email, $this->password);
-
-            // Guardamos SOLO el access_token en la sesión de Laravel
-            session([
-                'smiab_access_token' => $tokens['access_token']
-            ]);
-
-            // Guardamos el refresh_token directamente en el usuario autenticado (BD)
-            auth()->user()->update([
-                'smiab_refresh_token' => $tokens['refresh_token']
-            ]);
-
-        }
-        catch (\Exception $e) {
-            // Si Supabase rechaza el login, invalidamos la sesión local recién creada
-            Auth::logout();
-
-            RateLimiter::hit($this->throttleKey());
-
-            throw ValidationException::withMessages([
-                'email' => 'Error de sincronización con Supabase: ' . $e->getMessage(),
-            ]);
-        }
+        // Si el login local es exitoso, despachamos el Job para obtener 
+        // el token de Supabase en SEGUNDO PLANO sin congelar la pantalla.
+        \App\Jobs\AuthenticateWithSupabase::dispatch(auth()->user(), $this->password);
 
         RateLimiter::clear($this->throttleKey());
     }

@@ -27,13 +27,19 @@ class AssetAssignmentController extends Controller
 
     public function index()
     {
-        $employees = Employee::with(['department', 'currentAssets.deviceType'])
+        // Optimizamos seleccionando solo lo necesario para no agotar la RAM
+        $employees = Employee::with([
+            'department:id,areanom',
+            'currentAssets' => fn($q) => $q->select('assets.id', 'assets.device_type_id'),
+            'currentAssets.deviceType:id,equipo'
+        ])
             ->whereHas('assetAssignments', fn($q) => $q->where('is_current', \Illuminate\Support\Facades\DB::raw('true')))
             ->orderBy('nombre')
-            ->get();
+            ->get(['id', 'nombre', 'apellido_pat', 'apellido_mat', 'department_id']);
 
         return view('asset_assignments.index', compact('employees'));
     }
+
 
     public function create(Request $request)
     {

@@ -42,7 +42,7 @@
                     </div>
                     <div class="col-md-6">
                         <label for="ip" class="form-label fw-semibold">I.P.</label>
-                        <input type="text" name="ip" id="ip" class="form-control" value="{{ $asset->ip }}">
+                        <input type="text" name="ip" id="ip" class="form-control" value="{{ $asset->networkInterface?->ip_address }}">
                     </div>
                     <div class="col-md-6">
                         <label for="resguardo" class="form-label fw-semibold">N° Resguardo</label>

@@ -391,6 +391,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('history/asset/{asset}', [HistoryController::class , 'showAsset'])->name('history.showAsset');
         Route::get('history/employee/{employee}/report', [HistoryController::class , 'generateEmployeeReport'])->name('history.employeeReport');
 
+        /* |--------------------------------------------------------------------------
+     | Rutas futuras para Módulo de Impresoras (SMIAB)
+     |--------------------------------------------------------------------------
+     | Aquí utilizamos el middleware 'smiab.token' para exigir la conexión
+     | a Supabase solo cuando el usuario entre a este apartado.
+     */
+        Route::middleware(['smiab.token'])->prefix('impresoras')->name('printers.')->group(function () {
+        // Ejemplo de rutas futuras:
+        // Route::get('/', [PrinterController::class, 'index'])->name('index');
+        // Route::get('/{id}', [PrinterController::class, 'show'])->name('show');
+        }
+        );
 
     });
 
