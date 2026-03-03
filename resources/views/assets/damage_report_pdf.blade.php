@@ -156,16 +156,16 @@
         <div class="card-header">Datos del Usuario</div>
         <div class="card-body">
             <table>
-                <tr><th>Usuario</th><td>{{ $employee->full_name ?? 'N/A' }}</td></tr>
-                <tr><th>Correo</th><td>{{ $employee->email ?? 'N/A' }}</td></tr>
+                <tr><th>Usuario</th><td>{{ $employee?->full_name ?? 'N/A' }}</td></tr>
+                <tr><th>Correo</th><td>{{ $employee?->email ?? 'N/A' }}</td></tr>
                 <tr><th>Centro de Trabajo</th><td>ALIMENTACIÓN PARA EL BIENESTAR, S.A. DE C.V. REGIONAL OAXACA</td></tr>
-                <tr><th>Dirección o Ubicación</th><td>{{ $employee->direccion ?? 'N/A' }}</td></tr>
+                <tr><th>Dirección o Ubicación</th><td>{{ $employee?->direccion ?? 'N/A' }}</td></tr>
                 <tr><th>Piso</th><td>PB</td></tr>
-                <tr><th>Adscripción</th><td>{{ $employee->adscriptionGroups->pluck('name')->join(', ') ?? 'N/A' }}</td></tr>
-                <tr><th>Área o Departamento</th><td>{{ $employee->department->areanom ?? 'N/A' }}</td></tr>
-                <tr><th>Cargo o Puesto</th><td>{{ $employee->puesto ?? 'N/A' }}</td></tr>
-                <tr><th>Teléfono</th><td>{{ $employee->telefono ?? 'N/A' }}</td></tr>
-                <tr><th>Extensión</th><td>{{ $employee->extension ?? 'N/A' }}</td></tr>
+                <tr><th>Adscripción</th><td>{{ $employee?->adscriptionGroups?->pluck('name')?->join(', ') ?: 'N/A' }}</td></tr>
+                <tr><th>Área o Departamento</th><td>{{ $employee?->department?->areanom ?? 'N/A' }}</td></tr>
+                <tr><th>Cargo o Puesto</th><td>{{ $employee?->puesto ?? 'N/A' }}</td></tr>
+                <tr><th>Teléfono</th><td>{{ $employee?->telefono ?? 'N/A' }}</td></tr>
+                <tr><th>Extensión</th><td>{{ $employee?->extension ?? 'N/A' }}</td></tr>
                 <tr><th>Horario</th><td>8:00 am a 4:00 pm</td></tr>
             </table>
         </div>
