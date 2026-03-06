@@ -69,8 +69,8 @@
                     <tr>
                         <th class="text-start">Empleado</th>
                         <th class="text-start">Departamento</th>
-                        <th>Asignado</th>
-                        <th>Devuelto</th>
+                        <th class="text-center">Periodo</th>
+                        <th class="text-center">Estatus</th>
                         <th class="text-start">Observaciones</th>
                     </tr>
                 </thead>
@@ -103,9 +103,14 @@
 
                             <td class="text-center">
                                 @if($h->assigned_at)
-                                    <span class="date-pill">
-                                        <i class="far fa-calendar-check me-1"></i>
-                                        {{ $h->assigned_at->format('d/m/Y') }}
+                                    <span class="date-pill {{ $h->returned_at ? 'date-pill-out' : '' }}">
+                                        <i class="far fa-calendar-alt me-1"></i>
+                                        {{ $h->assigned_at->format('d/m/Y') }} 
+                                        @if($h->returned_at)
+                                            al {{ $h->returned_at->format('d/m/Y') }}
+                                        @else
+                                            - Presente
+                                        @endif
                                     </span>
                                 @else
                                     <span class="text-muted">-</span>
@@ -113,17 +118,14 @@
                             </td>
 
                             <td class="text-center">
-                                @if($h->returned_at)
-                                    <span class="date-pill date-pill-out">
-                                        <i class="far fa-calendar-minus me-1"></i>
-                                        {{ $h->returned_at->format('d/m/Y') }}
-                                    </span>
-                                @elseif($h->is_current)
-                                    <span class="badge bg-success rounded-pill px-3 py-2">
-                                        <i class="fas fa-check me-1"></i> Actual
+                                @if(is_null($h->returned_at))
+                                    <span class="badge bg-success rounded-pill px-3 py-2 shadow-sm">
+                                        <i class="fas fa-check-circle me-1"></i> En Uso
                                     </span>
                                 @else
-                                    <span class="text-muted">-</span>
+                                    <span class="badge bg-light text-secondary border rounded-pill px-3 py-2">
+                                        <i class="fas fa-history me-1"></i> Finalizado
+                                    </span>
                                 @endif
                             </td>
 

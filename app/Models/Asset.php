@@ -38,13 +38,15 @@ class Asset extends Model
         'estado',
     ];
 
-
     protected $appends = ['device_type_equipo'];
 
     public function getDeviceTypeEquipoAttribute()
     {
         return $this->deviceType?->equipo ?? '';
     }
+
+    public const STATUS_DAMAGED = 'DANADO';
+
     // Relación con el tipo de equipo del activo
     public function deviceType()
     {
@@ -68,6 +70,18 @@ class Asset extends Model
         return $this->hasOne(AssetNetworkInterface::class);
     }
 
+    // Relación para saber si este activo fue reemplazado por otro
+    public function replacementTarget()
+    {
+        return $this->hasOne(AssetReplacement::class, 'original_asset_id');
+    }
+
+    // Relación para saber si este activo es el reemplazo de otro
+    public function replacementOrigin()
+    {
+        return $this->hasOne(AssetReplacement::class, 'replacement_asset_id');
+    }
+
     // Relación con las asignaciones del activo
     public function assignments()
     {
@@ -80,6 +94,7 @@ class Asset extends Model
         return $this->hasOne(AssetAssignment::class)
             ->where('is_current', 'true');
     }
+
     // Método para obtener el empleado que tiene asignado el activo actualmente
     public function currentHolder()
     {

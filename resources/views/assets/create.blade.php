@@ -79,8 +79,25 @@
 
                             <div class="mt-2 small text-muted d-flex align-items-center">
                                 <i class="fas fa-exclamation-triangle me-2 text-warning"></i>
-                                El reemplazo dará de baja automáticamente el activo anterior.
+                                El reemplazo dará de baja o marcará como dañado automáticamente al activo anterior.
                             </div>
+                        </div>
+
+                        {{-- MOTIVO DE DAÑO / GARANTÍA (Solo para reemplazos) --}}
+                        <div class="mb-4 d-none" id="motivo_reemplazo_container">
+                            <label for="motivo_dano_garantia" class="form-label fw-semibold">
+                                <i class="fas fa-comment ms-1 text-guinda"></i> Motivo del Reemplazo (Daño o Garantía) <span class="text-danger">*</span>
+                            </label>
+                            <textarea 
+                                id="motivo_dano_garantia" 
+                                name="motivo_dano_garantia" 
+                                class="form-control @error('motivo_dano_garantia') is-invalid @enderror"
+                                rows="3"
+                                placeholder="Explique brevemente la falla o el motivo del reemplazo por garantía..."
+                            >{{ old('motivo_dano_garantia') }}</textarea>
+                            @error('motivo_dano_garantia')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
 
                         {{-- Sección: Información del Activo --}}
@@ -274,7 +291,9 @@
                                     class="form-select @error('estado') is-invalid @enderror"
                                     required
                                 >
-                                    <option value="RESGUARDADO" {{ old('estado') == 'RESGUARDADO' ? 'selected' : '' }}>RESGUARDADO</option>
+                                    <option value="OPERACION" {{ old('estado') == 'OPERACION' ? 'selected' : '' }}>OPERACION</option>
+                                    <option value="GARANTIA" {{ old('estado') == 'GARANTIA' ? 'selected' : '' }}>GARANTIA</option>
+                                    <option value="RESGUARDADO" {{ old('estado', 'RESGUARDADO') == 'RESGUARDADO' ? 'selected' : '' }}>RESGUARDADO</option>
                                     <option value="OTRO" {{ old('estado') == 'OTRO' ? 'selected' : '' }}>OTRO</option>
                                 </select>
                                 @error('estado')
@@ -367,6 +386,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const estado = document.getElementById('estado');
     const ipContainer = document.getElementById('ip_address_container');
     const ipInput = document.getElementById('ip_address');
+    
+    // Elementos para motivo de reemplazo
+    const modoRegistro = document.getElementById('modo_registro');
+    const motivoReemplazoContainer = document.getElementById('motivo_reemplazo_container');
+    const motivoDanoGarantia = document.getElementById('motivo_dano_garantia');
 
     // Función para mostrar/ocultar IP
     function toggleIpField() {
@@ -390,10 +414,30 @@ document.addEventListener('DOMContentLoaded', function() {
     // Ejecutar al inicio (por si hay old data)
     toggleIpField();
 
-    // ❗ Estado por defecto RESGUARDADO
-    if (!estado.value) {
-        estado.value = 'RESGUARDADO';
+    // Función para mostrar/ocultar el motivo de reemplazo y ajustar estado por defecto
+    function toggleMotivoReemplazo() {
+        if (modoRegistro.value === 'REEMPLAZO') {
+            motivoReemplazoContainer.classList.remove('d-none');
+            motivoDanoGarantia.setAttribute('required', 'required');
+            
+            // Cambiar dinámicamente el estado sugerido a OPERACION o GARANTIA para reemplazos
+            if(estado.value === 'RESGUARDADO') {
+                estado.value = 'OPERACION';
+            }
+        } else {
+            motivoReemplazoContainer.classList.add('d-none');
+            motivoDanoGarantia.removeAttribute('required');
+            motivoDanoGarantia.value = ''; // Limpiar valor si se oculta
+            
+            // Volver al estado por defecto si no es reemplazo
+            if(estado.value === 'OPERACION' || estado.value === 'GARANTIA') {
+                estado.value = 'RESGUARDADO';
+            }
+        }
     }
+
+    modoRegistro.addEventListener('change', toggleMotivoReemplazo);
+    toggleMotivoReemplazo();
 
     // Cambiar propiedad según proveedor
     supplier.addEventListener('change', function() {
@@ -412,6 +456,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!serie.value.trim()) missing.push('Número de Serie');
         if (!supplier.value)     missing.push('Proveedor');
         if (!deviceType.value)   missing.push('Tipo de Equipo');
+        if (modoRegistro.value === 'REEMPLAZO' && !motivoDanoGarantia.value.trim()) missing.push('Motivo del Reemplazo');
 
         if (missing.length > 0) {
             e.preventDefault();

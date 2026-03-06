@@ -38,7 +38,9 @@ class AssetRequest extends FormRequest
 
         if ($this->isMethod('post')) {
             $rules['modo_registro'] = 'nullable|string|in:ALTA,REEMPLAZO';
-        } else {
+            $rules['motivo_dano_garantia'] = 'nullable|string|max:1000|required_if:modo_registro,REEMPLAZO';
+        }
+        else {
             $rules['tag'] = 'nullable|string|max:255';
             $rules['serie'] = 'nullable|string|max:255';
             $rules['department_id'] = 'nullable|exists:departments,id';

@@ -45,7 +45,7 @@ class AssetService
             }
 
             // Automatic assignment logic
-            $this->handleInitialAssignment($newAsset, $user, $existingAssets);
+            $this->handleInitialAssignment($newAsset, $user, $existingAssets, $data);
 
             return $newAsset;
         });
@@ -80,7 +80,7 @@ class AssetService
     /**
      * Handle initial assignment or replacement logic.
      */
-    protected function handleInitialAssignment(Asset $newAsset, $user, $existingAssets)
+    protected function handleInitialAssignment(Asset $newAsset, $user, $existingAssets, $data = [])
     {
         $technician = UnitTechnician::getTechnicianForUser($user);
 
@@ -110,10 +110,18 @@ class AssetService
 
             if ($currentAssignment) {
                 // Close old
+                $modoRegistro = $data['modo_registro'] ?? 'ALTA';
+                $motivo = $data['motivo_dano_garantia'] ?? null;
+                
+                   $observations = ($modoRegistro === 'REEMPLAZO' && $motivo)
+                    ? "Reemplazo por daño/garantía: " . $motivo . ". Equipo sustituto (Serie): " . $newAsset->serie
+                    : 'Activo reemplazado por un nuevo activo';
+
+
                 $currentAssignment->update([
                     'is_current' => \Illuminate\Support\Facades\DB::raw('false'),
                     'returned_at' => now(),
-                    'observations' => 'Activo reemplazado por un nuevo activo',
+                    'observations' => $observations,
                 ]);
 
                 // Copy assignment to new asset
@@ -128,7 +136,18 @@ class AssetService
                 $newAsset->update(['department_id' => $newAssignment->employee->department_id]);
             }
 
-            $oldAsset->update(['estado' => 'BAJA']);
+            $modoRegistro = $data['modo_registro'] ?? 'ALTA';
+            $estadoViejo = $modoRegistro === 'REEMPLAZO' ? Asset::STATUS_DAMAGED : 'BAJA';
+            
+            $oldAsset->update(['estado' => $estadoViejo]);
+
+            if ($modoRegistro === 'REEMPLAZO' && !empty($data['motivo_dano_garantia'])) {
+                \App\Models\AssetReplacement::create([
+                    'original_asset_id' => $oldAsset->id,
+                    'replacement_asset_id' => $newAsset->id,
+                    'reason' => $data['motivo_dano_garantia'],
+                ]);
+            }
         }
     }
 
