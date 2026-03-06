@@ -47,6 +47,42 @@
                 </a>
             </div>
 
+            {{-- Sección de Corrección de Fechas --}}
+            @if(isset($suppliersWithImports) && $suppliersWithImports->isNotEmpty() && hasRole(['super_admin', 'admin']))
+            <div class="card border-warning mb-4 shadow-sm">
+                <div class="card-header bg-warning text-dark fw-bold">
+                    <i class="fas fa-calendar-alt me-1"></i> Corregir Fechas de Importación Masiva
+                </div>
+                <div class="card-body">
+                    <p class="mb-3">
+                        Se detectaron <strong>{{ $importedCount }} activos</strong> ingresados mediante importación masiva. 
+                        Selecciona el proveedor y la fecha real de entrega para corregir los registros correspondientes.
+                    </p>
+                    <form action="{{ route('assets.import.fix_date') }}" method="POST" class="d-flex align-items-end gap-3 flex-wrap">
+                        @csrf
+                        <div>
+                            <label for="supplier_id" class="form-label fw-semibold mb-1">Proveedor</label>
+                            <select name="supplier_id" id="supplier_id" class="form-select" required>
+                                <option value="">Selecciona un proveedor...</option>
+                                @foreach($suppliersWithImports as $supplier)
+                                    <option value="{{ $supplier->id }}">{{ $supplier->prvnombre }} ({{ $supplier->imported_count }} activos)</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label for="new_date" class="form-label fw-semibold mb-1">Nueva fecha de asignación</label>
+                            <input type="date" name="new_date" id="new_date" class="form-control" required max="{{ date('Y-m-d') }}">
+                        </div>
+                        <div>
+                            <button type="submit" class="btn btn-warning fw-bold" onclick="return confirm('¿Estás seguro de sobrescribir la fecha de estos activos? Esta acción es irreversible.')">
+                                <i class="fas fa-sync-alt me-1"></i> Aplicar Fecha
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            @endif
+
             {{-- Mensajes de sesión --}}
             @if(session('success'))
                 <div class="alert alert-success alert-dismissible fade show" role="alert">

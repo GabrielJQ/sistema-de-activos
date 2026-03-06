@@ -103,6 +103,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
             Route::get('assets/import', [AssetController::class , 'showImport'])->name('assets.showImport');
             Route::post('assets/import', [AssetController::class , 'import'])->name('assets.import');
+            Route::post('assets/import/fix-date', [AssetController::class , 'bulkUpdateImportDates'])->name('assets.import.fix_date');
             Route::get('assets/template/download', [AssetController::class , 'downloadTemplate'])->name('assets.template.download');
             Route::get('assets/export', [AssetController::class , 'exportForm'])->name('assets.exportForm');
             Route::post('assets/export', [AssetController::class , 'export'])->name('assets.export');
@@ -239,6 +240,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
             Route::get('assets/import', [AssetController::class , 'showImport'])->name('assets.showImport');
             Route::post('assets/import', [AssetController::class , 'import'])->name('assets.import');
+            Route::post('assets/import/fix-date', [AssetController::class , 'bulkUpdateImportDates'])->name('assets.import.fix_date');
             // Import Progress Routes
             Route::get('assets/import/progress/{task}', [App\Http\Controllers\ImportProgressController::class , 'show'])->name('assets.import.progress');
             Route::get('assets/import/status/{task}', [App\Http\Controllers\ImportProgressController::class , 'status'])->name('assets.import.status');

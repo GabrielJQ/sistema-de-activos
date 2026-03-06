@@ -67,7 +67,7 @@
                             <i class="fas fa-calendar-alt me-1 text-guinda"></i> Fecha de asignación
                         </th>
                         <td>
-                            {{ $assets->first()?->created_at?->format('d/m/Y') ?? 'N/A' }}
+                            {{ $assets->first()?->currentAssignment?->assigned_at?->format('d/m/Y') ?? 'N/A' }}
                         </td>
                     </tr>
 

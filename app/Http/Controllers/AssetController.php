@@ -271,7 +271,7 @@ class AssetController extends Controller
 
         //Ordenamos: principales primero, luego todo lo demás
         $assets = Asset::query()
-            ->with(['deviceType', 'supplier', 'department', 'currentHolder'])
+            ->with(['deviceType', 'supplier', 'department', 'currentHolder', 'currentAssignment'])
             ->where('tag', $tag)
             ->where('estado', '!=', 'BAJA')
             ->leftJoin('device_types as dt', 'dt.id', '=', 'assets.device_type_id')
@@ -625,10 +625,86 @@ class AssetController extends Controller
         return redirect()->back()->with('error', 'Formato no soportado.');
     }
 
-    public function showImport()
+        public function showImport()
     {
-        return view('assets.import');
+        $importedCount = 0;
+        $suppliersWithImports = collect();
+
+        if (hasRole(['super_admin', 'admin'])) {
+            $importedCount = \App\Models\AssetAssignment::where('is_current', 'true')
+                ->where(function($q) {
+                    $q->where('observations', 'like', 'Importaci%')
+                      ->orWhere('observations', 'like', 'Alta por Importaci%');
+                })
+                ->count();
+
+            if ($importedCount > 0) {
+                // Obtener agrupado por proveedor la cantidad de activos importados
+                $providerCounts = \App\Models\AssetAssignment::where('is_current', 'true')
+                    ->where(function($q) {
+                        $q->where('observations', 'like', 'Importaci%')
+                          ->orWhere('observations', 'like', 'Alta por Importaci%');
+                    })
+                    ->join('assets', 'asset_assignments.asset_id', '=', 'assets.id')
+                    ->selectRaw('assets.supplier_id, count(*) as total')
+                    ->groupBy('assets.supplier_id')
+                    ->pluck('total', 'supplier_id');
+
+                if ($providerCounts->isNotEmpty()) {
+                    $suppliersWithImports = \App\Models\Supplier::whereIn('id', $providerCounts->keys())->get()
+                        ->map(function($supplier) use ($providerCounts) {
+                            $supplier->imported_count = $providerCounts[$supplier->id] ?? 0;
+                            return $supplier;
+                        });
+                }
+            }
+        }
+        
+        return view('assets.import', compact('importedCount', 'suppliersWithImports'));
     }
+
+
+       public function bulkUpdateImportDates(Request $request)
+    {
+        if (!hasRole(['super_admin', 'admin'])) {
+            abort(403, 'No autorizado.');
+        }
+
+        // Se agregó la validación obligatoria del proveedor
+        $request->validate([
+            'new_date' => 'required|date|before_or_equal:today',
+            'supplier_id' => 'required|exists:suppliers,id',
+        ], [
+            'new_date.required' => 'Debes seleccionar una fecha.',
+            'new_date.before_or_equal' => 'La fecha no puede ser futura.',
+            'supplier_id.required' => 'Debes seleccionar un proveedor.',
+            'supplier_id.exists' => 'El proveedor seleccionado es inválido.',
+        ]);
+
+        try {
+            DB::beginTransaction();
+            
+            // Actualizar solamente los importados que pertenezcan a ese proveedor en específico
+            $updated = \App\Models\AssetAssignment::where('is_current', 'true')
+                ->where(function($q) {
+                    $q->where('observations', 'like', 'Importaci%')
+                      ->orWhere('observations', 'like', 'Alta por Importaci%');
+                })
+                ->whereHas('asset', function($q) use ($request) {
+                    $q->where('supplier_id', $request->supplier_id);
+                })
+                ->update(['assigned_at' => $request->new_date]);
+
+            DB::commit();
+
+            return back()->with('success', "Se han actualizado correctamente las fechas de {$updated} activos importados del proveedor seleccionado.");
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Error al actualizar las fechas: ' . $e->getMessage());
+        }
+    }
+
+
 
     public function downloadTemplate()
     {
