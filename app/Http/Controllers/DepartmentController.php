@@ -72,7 +72,7 @@ class DepartmentController extends Controller
     public function create()
     {
         $units = Unit::all(); // Para elegir la unidad
-        $addresses = Address::orderBy('municipio')->get();
+        $addresses = Address::whereHas('departments')->orderBy('municipio')->get();
 
         return view('departments.create', compact('units', 'addresses'));
     }
@@ -111,7 +111,8 @@ class DepartmentController extends Controller
     {
         $department->load(['address', 'unit']);
         $units = Unit::all();
-        return view('departments.edit', compact('department', 'units'));
+        $addresses = Address::whereHas('departments')->orderBy('municipio')->get();
+        return view('departments.edit', compact('department', 'units', 'addresses'));
     }
 
     public function update(DepartmentRequest $request, Department $department)
@@ -126,9 +127,9 @@ class DepartmentController extends Controller
                 'calle' => $request->calle,
                 'colonia' => $request->colonia,
                 'cp' => $request->cp,
-                'municipio' => 'OAXACA DE JUAREZ',
-                'ciudad' => 'OAXACA DE JUAREZ',
-                'estado' => 'OAXACA',
+                'municipio' => $request->municipio,
+                'ciudad' => $request->ciudad,
+                'estado' => $request->estado,
             ]
             );
         }
