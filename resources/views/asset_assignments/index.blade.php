@@ -128,63 +128,11 @@
         </div>
     </div>
 
-    {{-- Tabla --}}
-    <div class="card border-0 shadow-soft rounded-4">
-        <div class="card-body table-responsive p-3">
-            <table class="table table-hover align-middle datatable modern-table" id="employeesTable">
-                <thead class="table-dark">
-                    <tr>
-                        <th>Empleado</th>
-                        <th>Departamento</th>
-                        <th class="text-center">Activos</th>
-                        <th>Tipo más común</th>
-                        <th class="text-center">Acciones</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                @foreach($employees as $employee)
-                    <tr>
-                        <td class="fw-semibold">{{ $employee->full_name }}</td>
-                        <td class="text-muted">
-                            <i class="fas fa-building me-1"></i>{{ $employee->department_name }}
-                        </td>
-                        <td class="text-center">
-                            <span class="badge badge-soft bg-guinda">
-                                {{ $employee->currentAssets->count() }}
-                            </span>
-                        </td>
-                        <td class="small text-muted">
-                            @php
-                                $typesCount = $employee->currentAssets
-                                    ->groupBy(fn($a) => $a->deviceType->equipo ?? 'N/A')
-                                    ->map(fn($g) => $g->count())
-                                    ->sortDesc();
-                            @endphp
-
-                            @forelse($typesCount as $type => $count)
-                                <strong>{{ $type }}</strong>
-                                <span class="text-secondary">({{ $count }})</span>@if(!$loop->last), @endif
-                            @empty
-                                —
-                            @endforelse
-                        </td>
-                        <td class="text-center">
-                            <a href="{{ route('asset_assignments.show', $employee->id) }}"
-                               class="btn btn-sm modern-btn px-3">
-                                <i class="fas fa-eye me-1"></i> Ver
-                            </a>
-                        </td>
-                    </tr>
-                @endforeach
-                </tbody>
-
-            </table>
-        </div>
-    </div>
+    {{-- Componente Livewire Paginado --}}
+    @livewire('asset-assignment-index')
 
 </div>
-@stop
+@endsection
 
 @section('css')
 <style>
@@ -268,37 +216,9 @@
 
 @section('js')
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
 
 <script>
 $(document).ready(function() {
-    const table = $('#employeesTable');
-    if (!$.fn.DataTable.isDataTable(table)) {
-        const hasData = table.find('tbody tr').not(':has(td[colspan])').length > 0;
-        if (hasData) {
-            table.DataTable({
-                responsive: true,
-                autoWidth: false,
-                destroy: true,
-                language: {
-                    search: "Buscar:",
-                    lengthMenu: "Mostrar _MENU_ registros",
-                    info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
-                    paginate: {
-                        first: "Primero",
-                        last: "Último",
-                        next: "&rsaquo;",
-                        previous: "&lsaquo;"
-                    },
-                    emptyTable: "No hay datos",
-                },
-                pageLength: 10,
-                lengthMenu: [10, 25, 50, 100]
-            });
-        }
-    }
-
     // Fade out alerts
     setTimeout(() => $('.alert-success, .alert-danger').fadeOut(500), 5000);
 });

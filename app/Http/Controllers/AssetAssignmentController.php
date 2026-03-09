@@ -25,19 +25,16 @@ class AssetAssignmentController extends Controller
         $this->assignmentService = $assignmentService;
     }
 
-    public function index()
+       public function index()
     {
-        // Optimizamos seleccionando solo lo necesario para no agotar la RAM
-        $employees = Employee::with([
-            'department:id,areanom',
-            'currentAssets' => fn($q) => $q->select('assets.id', 'assets.device_type_id'),
-            'currentAssets.deviceType:id,equipo'
-        ])
-            ->whereHas('assetAssignments', fn($q) => $q->where('is_current', \Illuminate\Support\Facades\DB::raw('true')))
+        // Solo para el Modal de Descarga Masiva (liviano)
+        $employees = Employee::whereHas('assetAssignments', fn($q) => $q->where('is_current', \Illuminate\Support\Facades\DB::raw('true')))
             ->orderBy('nombre')
             ->get(['id', 'nombre', 'apellido_pat', 'apellido_mat', 'department_id']);
 
-        return view('asset_assignments.index', compact('employees'));
+        $departments = Department::orderBy('areanom')->get(['id', 'areanom']);
+
+        return view('asset_assignments.index', compact('employees', 'departments'));
     }
 
 
