@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" href="{{ asset('css/panelPrincipal.css') }}">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-
+    @livewireStyles
 @endpush
 
 {{-- JS adicional --}}
@@ -29,7 +29,7 @@
     <script src="{{ asset('js/confirm-import.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-
+    @livewireScripts
 
     <script>
         $(document).ready(function () {
