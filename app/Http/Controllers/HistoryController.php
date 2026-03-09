@@ -12,22 +12,12 @@ use Barryvdh\DomPDF\Facade\Pdf;
 class HistoryController extends Controller
 {
     // Mostrar vista principal del historial
+      
     public function index()
     {
-        // Solo empleados con historial
-        $employees = Employee::whereHas('assetAssignments')
-            ->with(['currentAssets.deviceType', 'department'])
-            ->get();
-
-        //Todos los activos con sus relaciones
-        $assets = Asset::with([
-            'deviceType',
-            'department',
-            'assignments.employee.department'
-        ])->get();
-
-        return view('history.index', compact('employees', 'assets'));
+        return view('history.index');
     }
+
 
     // Mostrar historial de un empleado específico
     public function showEmployee(Employee $employee)
