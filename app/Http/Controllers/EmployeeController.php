@@ -19,10 +19,7 @@ class EmployeeController extends Controller
     /** Mostrar lista de empleados */
     public function index()
     {
-        $activeEmployees = Employee::with('department')->where('status', 'Activo')->get();
-        $inactiveEmployees = Employee::with('department')->where('status', 'Inactivo')->get();
-
-        return view('employees.index', compact('activeEmployees', 'inactiveEmployees'));
+        return view('employees.index');
     }
 
     /** Formulario para crear empleado */
@@ -75,13 +72,13 @@ class EmployeeController extends Controller
         $tipo = trim(strtoupper($tipo));
 
         return match ($tipo) {
-            'SINDICALIZADO' => 'Sindicalizado',
-            'CONFIANZA' => 'Confianza',
-            'EVENTUAL' => 'Eventual',
-            'HONORARIOS' => 'Honorarios',
-            'OTRO' => 'Otro',
-            default => 'Otro',
-        };
+                'SINDICALIZADO' => 'Sindicalizado',
+                'CONFIANZA' => 'Confianza',
+                'EVENTUAL' => 'Eventual',
+                'HONORARIOS' => 'Honorarios',
+                'OTRO' => 'Otro',
+                default => 'Otro',
+            };
     }
 
     /** Mostrar vista de importación */
@@ -107,7 +104,8 @@ class EmployeeController extends Controller
             $rows = array_map('str_getcsv', file($file));
             $dataRows = array_slice($rows, 1);
             $hasData = count(array_filter($dataRows, fn($row) => !empty(array_filter($row)))) > 0;
-        } else {
+        }
+        else {
             $spreadsheet = IOFactory::load($file);
             $sheet = $spreadsheet->getActiveSheet();
             $rows = $sheet->toArray();
@@ -162,7 +160,8 @@ class EmployeeController extends Controller
         if ($filterColumn && $filterValue) {
             if ($filterColumn === 'department_id') {
                 $query->whereHas('department', fn($q) => $q->where('areanom', 'LIKE', "%{$filterValue}%"));
-            } else {
+            }
+            else {
                 $query->where($filterColumn, 'LIKE', "%{$filterValue}%");
             }
         }
@@ -225,14 +224,16 @@ class EmployeeController extends Controller
         $timestamp = now()->format('Y-m-d_H-i-s');
         $filename = "plantilla_empleados_{$timestamp}.xlsx";
 
-        $export = new class ($headers) implements FromArray {
+        $export = new class($headers) implements FromArray {
             protected $data;
             public function __construct($data)
             {
-                $this->data = $data; }
+                $this->data = $data;
+            }
             public function array(): array
             {
-                return $this->data; }
+                return $this->data;
+            }
         };
 
         return Excel::download($export, $filename);
@@ -245,20 +246,20 @@ class EmployeeController extends Controller
 
         foreach ($columns as $col) {
             $row[$col] = match ($col) {
-                'expediente' => $employee->expediente,
-                'nombre' => $employee->nombre,
-                'apellido_pat' => $employee->apellido_pat,
-                'apellido_mat' => $employee->apellido_mat,
-                'full_name' => $employee->full_name,
-                'department_id' => $employee->department->areanom ?? '—',
-                'puesto' => $employee->puesto,
-                'tipo' => $employee->tipo,
-                'email' => $employee->email,
-                'telefono' => $employee->telefono,
-                'extension' => $employee->extension,
-                'status' => $employee->status,
-                default => '',
-            };
+                    'expediente' => $employee->expediente,
+                    'nombre' => $employee->nombre,
+                    'apellido_pat' => $employee->apellido_pat,
+                    'apellido_mat' => $employee->apellido_mat,
+                    'full_name' => $employee->full_name,
+                    'department_id' => $employee->department->areanom ?? '—',
+                    'puesto' => $employee->puesto,
+                    'tipo' => $employee->tipo,
+                    'email' => $employee->email,
+                    'telefono' => $employee->telefono,
+                    'extension' => $employee->extension,
+                    'status' => $employee->status,
+                    default => '',
+                };
         }
 
         foreach ($extraColumns as $extra) {
