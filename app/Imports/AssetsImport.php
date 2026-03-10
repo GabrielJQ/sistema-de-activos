@@ -218,9 +218,10 @@ class AssetsImport implements ToCollection, WithHeadingRow, WithChunkReading, Wi
                 ]
                 );
 
-                // IP Address
+                // IP Address: Guardado explícito de la relación
                 if (!empty($normalized['IP_ADDRESS'])) {
                     $requiresIp = $tipo->requires_ip || stripos($tipo->equipo, 'Impresora') !== false;
+                    
                     if ($requiresIp) {
                         AssetNetworkInterface::updateOrCreate(
                             ['asset_id' => $asset->id],
@@ -319,7 +320,10 @@ class AssetsImport implements ToCollection, WithHeadingRow, WithChunkReading, Wi
             'DEPARTAMENTO' => strtoupper($normalized['DEPARTAMENTO'] ?? ''),
             'RESGUARDO' => strtoupper($normalized['RESGUARDO'] ?? ''), // Nombre del empleado
             'ACTIVO' => strtoupper($normalized['ACTIVO'] ?? 'SI'),
-            'IP_ADDRESS' => $normalized['IP'] ?? $normalized['DIRECCION_IP'] ?? null,
+            'IP_ADDRESS' => $normalized['IP'] ?? 
+                            $normalized['DIRECCION_IP'] ?? 
+                            $normalized['IP_ADDRESS'] ?? 
+                            $normalized['DIRECCIÓN_IP'] ?? null,
         ];
     }
 
