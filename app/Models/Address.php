@@ -14,4 +14,10 @@ class Address extends Model
         'calle', 'colonia', 'cp', 'municipio', 'ciudad', 'estado'
     ];
 
+
+    public function departments()
+    {
+        return $this->hasMany(Department::class);
+    }
+
 }
