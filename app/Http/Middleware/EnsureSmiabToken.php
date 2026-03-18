@@ -15,21 +15,38 @@ class EnsureSmiabToken
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (auth()->check() && !session()->has('smiab_access_token') && !empty(auth()->user()->smiab_refresh_token)) {
+        $user = auth()->user();
+        $now = now()->timestamp;
+        $expiresAt = session('smiab_expires_at', 0);
+        
+        // Refrescar si: 
+        // 1. No hay access_token en sesión
+        // 2. O el token está por expirar (margen de 5 minutos)
+        $needsRefresh = !session()->has('smiab_access_token') || ($expiresAt - $now < 300);
+
+        if (auth()->check() && $needsRefresh && !empty($user->smiab_refresh_token)) {
             try {
                 $supabaseService = app(\App\Services\SupabaseAuthService::class);
-                $tokens = $supabaseService->refreshToken(auth()->user()->smiab_refresh_token);
+                $tokens = $supabaseService->refreshToken($user->smiab_refresh_token);
 
-                // Si tiene éxito: Guarda el nuevo access_token en la sesión y actualiza el nuevo refresh_token en la BD
-                session(['smiab_access_token' => $tokens['access_token']]);
+                // Si tiene éxito: Actualiza sesión y base de datos
+                session([
+                    'smiab_access_token' => $tokens['access_token'],
+                    'smiab_expires_at' => now()->addSeconds($tokens['expires_in'])->timestamp
+                ]);
 
-                auth()->user()->update([
+                $user->update([
                     'smiab_refresh_token' => $tokens['refresh_token']
                 ]);
             }
             catch (\Exception $e) {
-                // Si falla (token caducado o inválido): Pon el smiab_refresh_token de la BD en null para no ciclarse
-                auth()->user()->update(['smiab_refresh_token' => null]);
+                // Solo invalidamos el refresh_token si Supabase confirma que no es válido (ej: revocado)
+                // Ignoramos errores temporales de red para no obligar al usuario a re-loguearse innecesariamente
+                if (str_contains($e->getMessage(), 'invalid_grant') || str_contains($e->getMessage(), 'Refresh Token Error')) {
+                    \Log::warning("SMIAB Refresh Token invalidado para usuario {$user->id}: " . $e->getMessage());
+                    $user->update(['smiab_refresh_token' => null]);
+                    session()->forget(['smiab_access_token', 'smiab_expires_at']);
+                }
             }
         }
 

@@ -37,6 +37,10 @@ class AuthenticatedSessionController extends Controller
             // 1. Guardamos usando el objeto Request (más confiable)
             $request->session()->put('smiab_access_token', $tokens['access_token']);
             
+            // Guardamos el tiempo de expiración en sesión (ahora + segundos de Supabase)
+            $expiresAt = now()->addSeconds($tokens['expires_in'])->timestamp;
+            $request->session()->put('smiab_expires_at', $expiresAt);
+
             // 2. FORZAMOS el guardado de la sesión en este exacto milisegundo
             $request->session()->save();
 

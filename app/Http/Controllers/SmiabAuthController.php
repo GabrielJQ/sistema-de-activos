@@ -34,6 +34,10 @@ class SmiabAuthController extends Controller
 
             // Guardamos el nuevo access_token en sesión
             session(['smiab_access_token' => $tokens['access_token']]);
+            
+            // Actualizamos la expiración en sesión
+            $expiresAt = now()->addSeconds($tokens['expires_in'])->timestamp;
+            session(['smiab_expires_at' => $expiresAt]);
 
             return response()->json([
                 'access_token' => $tokens['access_token']
