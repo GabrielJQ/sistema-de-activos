@@ -32,8 +32,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Rescue token route for Javascript
     Route::post('/smiab/refresh-token', [\App\Http\Controllers\SmiabAuthController::class , 'refreshToken'])->name('smiab.refresh');
-
-    Route::middleware([RoleMiddleware::class . ':super_admin'])->group(function () {
+    Route::get('/smiab/get-token', function () {
+            return response()->json([
+            'access_token' => session('smiab_access_token')
+            ]);
+        }
+        );
+        Route::middleware([RoleMiddleware::class . ':super_admin'])->group(function () {
 
             // Usuarios
             Route::get('users', [UserController::class , 'index'])->name('users.index');
