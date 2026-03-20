@@ -332,7 +332,7 @@ return [
 
                 [
                     'text' => 'Monitor de Impresoras',
-                    'url' => env('SMIAB_FRONTEND_URL', 'http://127.0.0.1:3001'), // Llama directo al .env
+                    'url' => env('SMIAB_FRONTEND_URL', 'http://127.0.0.1:3001') . '/smiab', // Llama directo al .env y añade la ruta base
                     'target' => '_blank', // Hace que se abra en una nueva pestaña
                     'icon' => 'fas fa-fw fa-print',
                     'roles' => ['super_admin', 'admin', 'collaborator'], // Ajusta los roles que tendrán acceso
