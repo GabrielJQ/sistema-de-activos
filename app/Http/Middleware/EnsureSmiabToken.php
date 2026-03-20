@@ -44,8 +44,17 @@ class EnsureSmiabToken
                 // Ignoramos errores temporales de red para no obligar al usuario a re-loguearse innecesariamente
                 if (str_contains($e->getMessage(), 'invalid_grant') || str_contains($e->getMessage(), 'Refresh Token Error')) {
                     \Log::warning("SMIAB Refresh Token invalidado para usuario {$user->id}: " . $e->getMessage());
+                    
                     $user->update(['smiab_refresh_token' => null]);
                     session()->forget(['smiab_access_token', 'smiab_expires_at']);
+
+                    // CRÍTICO: Si el token de SMIAB muere irrevocablemente, debemos cerrar la sesión de SAI
+                    // para romper el bucle de redirección y obligar al usuario a re-autenticarse con su password.
+                    auth()->logout();
+                    session()->invalidate();
+                    session()->regenerateToken();
+
+                    return redirect()->route('login')->with('error', 'Su sesión de SMIAB ha expirado totalmente. Por favor, ingrese de nuevo para sincronizar.');
                 }
             }
         }

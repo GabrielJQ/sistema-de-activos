@@ -30,14 +30,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/profile', [ProfileController::class , 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class , 'destroy'])->name('profile.destroy');
 
-    // Rescue token route for Javascript
-    Route::post('/smiab/refresh-token', [\App\Http\Controllers\SmiabAuthController::class , 'refreshToken'])->name('smiab.refresh');
-    Route::get('/smiab/get-token', function () {
+    // Rescue token routes for Javascript
+    Route::middleware(['smiab.token'])->group(function () {
+        Route::post('/smiab/refresh-token', [\App\Http\Controllers\SmiabAuthController::class, 'refreshToken'])->name('smiab.refresh');
+        Route::get('/smiab/get-token', function () {
             return response()->json([
-            'access_token' => session('smiab_access_token')
+                'access_token' => session('smiab_access_token')
             ]);
-        }
-        );
+        })->name('smiab.get-token');
+    });
         Route::middleware([RoleMiddleware::class . ':super_admin'])->group(function () {
 
             // Usuarios
