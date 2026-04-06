@@ -11,17 +11,7 @@ class DeviceTypeController extends Controller
 {
     public function index(Request $request)
     {
-        $deviceTypes = DeviceType::query()
-            ->when($request->filled('search'), function ($q) use ($request) {
-            $search = $request->search;
-            $q->where('equipo', 'like', "%{$search}%")
-                ->orWhere('descripcion', 'like', "%{$search}%");
-        })
-            ->orderBy('equipo')
-            ->paginate(6)
-            ->withQueryString();
-
-        return view('device_types.index', compact('deviceTypes'));
+        return view('device_types.index');
     }
 
     public function create()

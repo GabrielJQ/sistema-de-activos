@@ -60,43 +60,8 @@
         </div>
     </div>
 
-    {{-- Tabs --}}
-    <ul class="nav nav-tabs modern-tabs mb-3" id="employeeTabs" role="tablist">
-        <li class="nav-item">
-            <button class="nav-link custom-tab active"
-                    data-bs-toggle="tab"
-                    data-bs-target="#active"
-                    type="button">
-                <i class="fas fa-user-check me-1"></i> Activos
-            </button>
-        </li>
-
-        <li class="nav-item">
-            <button class="nav-link custom-tab"
-                    data-bs-toggle="tab"
-                    data-bs-target="#inactive"
-                    type="button">
-                <i class="fas fa-user-slash me-1"></i> Inactivos
-            </button>
-        </li>
-    </ul>
-
-    {{-- Contenido --}}
-    <div class="tab-content">
-
-        <div class="tab-pane fade show active" id="active">
-            <div class="table-card">
-                @include('employees.partials.employee_table', ['employees' => $activeEmployees])
-            </div>
-        </div>
-
-        <div class="tab-pane fade" id="inactive">
-            <div class="table-card">
-                @include('employees.partials.employee_table', ['employees' => $inactiveEmployees])
-            </div>
-        </div>
-
-    </div>
+    {{-- Livewire Component --}}
+    @livewire('employee-index')
 
 </div>
 @stop
@@ -213,16 +178,8 @@
     color: #fff !important;
 }
 
-/* Encabezados DataTable */
-table.dataTable thead th {
-    background-color: #000 !important;
-    color: #fff !important;
-    text-align: center;
-    border: none !important;
-}
-
 /* ============================= */
-/* RESPONSIVE */
+/* RESPONISVE */
 /* ============================= */
 @media (max-width: 576px) {
     .btn-actions-new,
@@ -239,53 +196,4 @@ table.dataTable thead th {
 
 
 @section('js')
-<script>
-$(document).ready(function () {
-
-    function init(table) {
-        if (!$.fn.DataTable.isDataTable(table)) {
-
-            let hasData = $(table).find('tbody tr').not(':has(td[colspan])').length > 0;
-
-            if (hasData) {
-                $(table).DataTable({
-                    responsive: true,
-                    autoWidth: false,
-                    destroy: true,
-                    language: {
-                        search: "Buscar:",
-                        lengthMenu: "Mostrar _MENU_ registros",
-                        info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
-                        paginate: {
-                            first: "Primero",
-                            last: "Último",
-                            next: "&rsaquo;",
-                            previous: "&lsaquo;"
-                        },
-                        emptyTable: "No hay datos",
-                    },
-                    pageLength: 10,
-                    lengthMenu: [10, 25, 50, 100],
-                });
-            }
-        }
-    }
-
-    // Inicializar tabla visible
-    $('.tab-pane.active .datatable').each(function() {
-        init(this);
-    });
-
-    // Inicializar al cambiar pestaña
-    $('#employeeTabs button[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
-        let target = $(e.target).data('bs-target');
-
-        $(target).find('.datatable').each(function() {
-            init(this);
-            try { $(this).DataTable().columns.adjust(); } catch {}
-        });
-    });
-
-});
-</script>
 @stop

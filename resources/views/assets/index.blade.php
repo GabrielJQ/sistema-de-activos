@@ -65,78 +65,8 @@
         </div>
     </div>
 
-    {{-- Tabs --}}
-    <div class="card border-0 shadow-soft rounded-4">
-        <div class="card-body p-0">
-
-            <ul class="nav nav-tabs asset-tabs border-0 px-3 pt-3" id="assetTabs" role="tablist">
-                <li class="nav-item">
-                    <button class="nav-link active custom-tab" id="assigned-tab" data-bs-toggle="tab" data-bs-target="#assigned">
-                        <i class="fas fa-user-check me-1"></i> Asignados
-                    </button>
-                </li>
-                <li class="nav-item">
-                    <button class="nav-link custom-tab" id="unassigned-tab" data-bs-toggle="tab" data-bs-target="#unassigned">
-                        <i class="fas fa-user-clock me-1"></i> Disponibles
-                    </button>
-                </li>
-                <li class="nav-item">
-                    <button class="nav-link custom-tab" id="damaged-tab" data-bs-toggle="tab" data-bs-target="#damaged">
-                        <i class="fas fa-exclamation-triangle me-1"></i> Dañados
-                    </button>
-                </li>
-                <li class="nav-item">
-                    <button class="nav-link custom-tab" id="inactive-tab" data-bs-toggle="tab" data-bs-target="#inactive">
-                        <i class="fas fa-ban me-1"></i> Inactivos
-                    </button>
-                </li>
-            </ul>
-
-            <div class="tab-content p-4" id="assetTabsContent">
-
-                <div class="tab-pane fade show active" id="assigned">
-                    <div class="table-card">
-                        @include('assets.partials.asset_table', [
-                            'activos' => $assignedAssets,
-                            'damagedTab' => false,
-                            'inactiveTab' => false
-                        ])
-                    </div>
-                </div>
-
-                <div class="tab-pane fade" id="unassigned">
-                    <div class="table-card">
-                        @include('assets.partials.asset_table', [
-                            'activos' => $unassignedAssets,
-                            'damagedTab' => false,
-                            'inactiveTab' => false
-                        ])
-                    </div>
-                </div>
-
-                <div class="tab-pane fade" id="damaged">
-                    <div class="table-card">
-                        @include('assets.partials.asset_table', [
-                            'activos' => $damagedAssets,
-                            'damagedTab' => true,
-                            'inactiveTab' => false
-                        ])
-                    </div>
-                </div>
-
-                <div class="tab-pane fade" id="inactive">
-                    <div class="table-card">
-                        @include('assets.partials.asset_table', [
-                            'activos' => $inactiveAssets,
-                            'damagedTab' => false,
-                            'inactiveTab' => true
-                        ])
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </div>
+    {{-- Contenedor Livewire --}}
+    @livewire('asset-index')
 
 </div>
 @stop
@@ -297,48 +227,6 @@ table.dataTable thead th {
 @section('js')
 <script>
 $(document).ready(function () {
-    function initDataTable(table) {
-        if (!$.fn.DataTable.isDataTable(table)) {
-            let hasData = $(table).find('tbody tr').not(':has(td[colspan])').length > 0;
-
-            if (hasData) {
-                $(table).DataTable({
-                    responsive: true,
-                    autoWidth: false,
-                    destroy: true,
-                    language: {
-                        search: "Buscar:",
-                        lengthMenu: "Mostrar _MENU_ registros",
-                        info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
-                        paginate: {
-                            first: "Primero",
-                            last: "Último",
-                            next: "&rsaquo;",
-                            previous: "&lsaquo;"
-                        },
-                        emptyTable: "No hay datos",
-                    },
-                    pageLength: 10,
-                    lengthMenu: [10, 25, 50, 100],
-                });
-            }
-        }
-    }
-
-    // Inicializar tabla visible
-    $('.tab-pane.active .datatable').each(function() {
-        initDataTable(this);
-    });
-
-    // Inicializar tablas al cambiar pestaña
-    $('#assetTabs button[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
-        let target = $(e.target).data('bs-target');
-        $(target).find('.datatable').each(function() {
-            initDataTable(this);
-            $(this).DataTable().columns.adjust();
-        });
-    });
-
     // Tooltips
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     tooltipTriggerList.map(function (tooltipTriggerEl) {
@@ -348,6 +236,5 @@ $(document).ready(function () {
     // Quitar preloader
     $('.preloader').remove();
 });
-
 </script>
 @stop

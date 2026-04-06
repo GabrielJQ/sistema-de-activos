@@ -18,20 +18,7 @@ class DepartmentController extends Controller
     // Mostrar lista de departamentos
     public function index(Request $request)
     {
-        // Carga normal de departamentos
-        $departments = Department::with(['address', 'unit.region'])
-            ->when($request->filled('search'), function ($q) use ($request) {
-            $search = $request->search;
-            $q->where('areanom', 'like', "%{$search}%")
-                ->orWhereHas('unit', fn($u) => $u->where('uninom', 'like', "%{$search}%"))
-                ->orWhereHas('address', fn($a) => $a->where('calle', 'like', "%{$search}%")
-            ->orWhere('colonia', 'like', "%{$search}%")
-            ->orWhere('cp', 'like', "%{$search}%"));
-        })
-            ->when($request->filled('tipo'), fn($q) => $q->where('tipo', $request->tipo))
-            ->orderBy('areanom')
-            ->paginate(6)
-            ->withQueryString();
+        // La carga normal (listado paginado) ha sido delegada a Livewire
 
         //Cargar estructura organizacional
         $organizacion = \App\Models\Region::with([
@@ -61,7 +48,6 @@ class DepartmentController extends Controller
                 });
 
         return view('departments.index', [
-            'departments' => $departments,
             'organizacion' => $organizacion,
             'estructura' => $estructura, // ← ADD
         ]);

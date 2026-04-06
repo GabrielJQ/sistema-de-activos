@@ -41,95 +41,9 @@
         </div>
     @endif
 
-    {{-- ================= FILTROS ================= --}}
+    {{-- ================= LIVEWIRE COMPONENT ================= --}}
     @if(!hasrole(['super_admin']))
-    <div class="card shadow-soft rounded-4 border-0 mb-4">
-        <div class="card-body">
-            <form id="filterForm" action="{{ route('departments.index') }}" method="GET"
-                  class="d-flex flex-wrap gap-2 align-items-center">
-
-                <input type="text"
-                       name="search"
-                       id="searchInput"
-                       class="form-control flex-grow-1"
-                       placeholder="Buscar por nombre, unidad o dirección…"
-                       value="{{ request('search') }}"
-                       style="max-width: 340px;">
-
-                <select name="tipo" id="tipoSelect" class="form-select" style="max-width: 200px;">
-                    <option value="">Todos los tipos</option>
-                    <option value="Oficina" {{ request('tipo')=='Oficina'?'selected':'' }}>🏢 Oficina</option>
-                    <option value="Almacen" {{ request('tipo')=='Almacen'?'selected':'' }}>🏬 Almacén</option>
-                    <option value="Otro" {{ request('tipo')=='Otro'?'selected':'' }}>📦 Otro</option>
-                </select>
-
-                <button type="submit" class="btn btn-secondary px-4">
-                    <i class="fas fa-filter me-1"></i> Filtrar
-                </button>
-            </form>
-        </div>
-    </div>
-
-    {{-- ================= LISTADO ================= --}}
-    <div id="departmentsList" class="row g-3">
-        @forelse($departments as $dept)
-            <div class="col-12 col-md-6 col-lg-4">
-                <div class="card dept-card h-100 border-0 shadow-soft rounded-4">
-                    <div class="card-body d-flex flex-column justify-content-between">
-
-                        <div>
-                            <h5 class="fw-bold mb-1">{{ $dept->areanom }}</h5>
-
-                            <span class="badge badge-soft mb-2">
-                                {{ $dept->tipo }}
-                            </span>
-
-                            <p class="text-muted mb-1">
-                                <i class="fas fa-sitemap me-1"></i>
-                                {{ $dept->unit->uninom ?? '-' }}
-                            </p>
-
-                            <p class="text-muted mb-0 small">
-                                <i class="fas fa-map-marker-alt me-1"></i>
-                                {{ $dept->address->calle ?? '-' }},
-                                {{ $dept->address->colonia ?? '-' }},
-                                CP {{ $dept->address->cp ?? '-' }}
-                            </p>
-                        </div>
-
-                        <div class="mt-3 d-flex justify-content-end gap-2 flex-wrap">
-                            <a href="{{ route('departments.edit', $dept->id) }}"
-                               class="btn btn-guinda btn-sm px-3">
-                                <i class="fas fa-edit me-1"></i> Editar
-                            </a>
-
-                            <button type="button"
-                                    class="btn btn-outline-danger btn-sm px-3"
-                                    data-confirm-delete
-                                    data-name="{{ $dept->areanom }}"
-                                    data-text="¿Deseas eliminar este departamento?"
-                                    data-action="{{ route('departments.destroy', $dept->id) }}">
-                                <i class="fas fa-trash me-1"></i> Eliminar
-                            </button>
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-        @empty
-            <div class="col-12 text-center py-5">
-                <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
-                <p class="fs-5 text-muted mb-0">No se encontraron departamentos</p>
-            </div>
-        @endforelse
-    </div>
-
-    {{-- ================= PAGINACIÓN ================= --}}
-    @if($departments instanceof \Illuminate\Pagination\LengthAwarePaginator)
-        <div class="d-flex justify-content-center mt-4" id="paginationContainer">
-            {{ $departments->appends(request()->query())->links('pagination::bootstrap-4') }}
-        </div>
-    @endif
+        @livewire('department-index')
     @endif
 
     {{-- ================= PANEL ORGANIZACIONAL ================= --}}
@@ -459,73 +373,6 @@ document.addEventListener("DOMContentLoaded", function () {
     let timer;
 
 
-    /* ================================
-       FUNCIÓN AJAX PRINCIPAL
-    ==================================*/
-
-    function fetchDepartments(url = null) {
-
-        if (!url) {
-            url = filterForm.action + "?" + new URLSearchParams(new FormData(filterForm)).toString();
-        }
-
-        fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } })
-            .then(res => res.text())
-            .then(html => {
-                const doc = new DOMParser().parseFromString(html, "text/html");
-
-                const newList = doc.getElementById('departmentsList');
-                if (newList) departmentsList.innerHTML = newList.innerHTML;
-
-                const newPagination = doc.getElementById('paginationContainer');
-                if (newPagination) paginationContainer.innerHTML = newPagination.innerHTML;
-
-                window.history.pushState({}, '', url);
-            })
-            .catch(err => console.error(err));
-    }
-
-
-    /* ================================
-       BÚSQUEDA EN TIEMPO REAL
-    ==================================*/
-
-    if (searchInput) {
-        searchInput.addEventListener('keyup', () => {
-            clearTimeout(timer);
-            timer = setTimeout(() => fetchDepartments(), 500);
-        });
-    }
-
-
-    /* ================================
-       FORMULARIO DE FILTRO
-    ==================================*/
-
-    if (filterForm) {
-        filterForm.addEventListener('submit', e => {
-            e.preventDefault();
-            fetchDepartments();
-        });
-    }
-
-
-    /* ================================
-       CLICK DELEGADO GLOBAL
-       - Paginación
-       - Toggle región
-       - Toggle unidad
-    ==================================*/
-
-    document.addEventListener("click", function(e) {
-
-        /* ---- PAGINACIÓN ---- */
-        const link = e.target.closest('.pagination a');
-        if (link) {
-            e.preventDefault();
-            return fetchDepartments(link.href);
-        }
-
         /* ===================================================
         TOGGLE REGIÓN (mismo comportamiento que UNIDAD)
         =================================================== */
@@ -663,12 +510,6 @@ document.addEventListener("DOMContentLoaded", function () {
     if (filterUnit)   filterUnit.addEventListener("input", filterTree);
     if (filterDept)   filterDept.addEventListener("input", filterTree);
 
-
-    /* ================================
-       POPSTATE (navegación de historial)
-    ==================================*/
-
-    window.addEventListener('popstate', () => fetchDepartments(window.location.href));
 
 });
 
