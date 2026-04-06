@@ -53,6 +53,7 @@ class SupabaseAuthService
         return [
             'access_token' => $data['access_token'] ?? null,
             'refresh_token' => $data['refresh_token'] ?? null,
+            'expires_in' => $data['expires_in'] ?? 3600,
         ];
     }
 
@@ -89,6 +90,7 @@ class SupabaseAuthService
         return [
             'access_token' => $data['access_token'] ?? null,
             'refresh_token' => $data['refresh_token'] ?? null,
+            'expires_in' => $data['expires_in'] ?? 3600,
         ];
     }
 

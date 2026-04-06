@@ -41,4 +41,8 @@ return [
         'anon_key' => env('SUPABASE_ANON_KEY'),
     ],
 
+    'smiab' => [
+        'url' => env('SMIAB_FRONTEND_URL', 'http://127.0.0.1:3001'),
+    ],
+
 ];

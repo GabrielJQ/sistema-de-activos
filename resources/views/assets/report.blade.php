@@ -249,20 +249,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 "text/plain": new Blob([htmlContent.replace(/<[^>]+>/g, '')], { type: "text/plain" })
             })
         ]).then(() => {
-            // mensaje corto tipo toast
-            const msg = document.createElement('div');
-            msg.innerText = 'Contenido copiado';
-            msg.style.position = 'fixed';
-            msg.style.bottom = '20px';
-            msg.style.right = '20px';
-            msg.style.backgroundColor = '#333';
-            msg.style.color = '#fff';
-            msg.style.padding = '8px 12px';
-            msg.style.borderRadius = '5px';
-            msg.style.zIndex = '9999';
-            msg.style.opacity = '0.9';
-            document.body.appendChild(msg);
-            setTimeout(() => msg.remove(), 2000);
+            const originalHtml = btnCopiar.innerHTML;
+            const originalClass = btnCopiar.className;
+
+            btnCopiar.innerHTML = '<i class="fas fa-check me-1"></i> COPIADO';
+            btnCopiar.className = 'btn btn-success px-3 py-1 shadow-sm text-white fw-bold';
+
+            setTimeout(() => {
+                btnCopiar.innerHTML = originalHtml;
+                btnCopiar.className = originalClass;
+            }, 2000);
         }).catch(err => console.error('Error al copiar:', err));
     });
 });
