@@ -4,6 +4,7 @@
     </IfModule>
 
     RewriteEngine On
+    RewriteBase /sai/
 
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
